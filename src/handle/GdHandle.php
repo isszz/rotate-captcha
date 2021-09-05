@@ -59,7 +59,7 @@ class GdHandle extends Handle
         $mime = $this->info['mime'];
 
         // Forced to jpg
-        if(!empty($this->config['compress'])) {
+        if(empty($this->config['compress'])) {
             $mime = 'image/jpeg';
         }
 
@@ -145,12 +145,23 @@ class GdHandle extends Handle
         // Zoom
         $scale = $dst_w / $w;
         $target = imagecreatetruecolor($dst_w, $dst_h);
+        
+        if(!empty($this->config['compress']) || empty($this->config['bgcolor'])) {
+            $bgColor = imagecolorallocatealpha($target, 255, 255, 255, 127);
+            imagefill($target, 0, 0, $bgColor);
+            // Keep transparent
+            imagesavealpha($target, true);
+            // imagealphablending($target, false);
+        } else {
+            // Set background color
+            $_color = $this->hex2rgb($this->config['bgcolor'], false);
+            if(!$_color || !is_array($_color)) {
+                $_color = [255, 255, 255];
+            }
 
-        $transparent = imagecolorallocatealpha($target, 255, 255, 255, 127);
-        imagefill($target, 0, 0, $transparent);
-        // Keep transparent
-        imagesavealpha($target, true);
-        // imagealphablending($target, false);
+            $bgColor = imagecolorallocate($target, ...$_color);
+            imagefill($target, 0, 0, $bgColor);
+        }
 
         $final_w = intval($w * $scale);
         $final_h = intval($h * $scale);

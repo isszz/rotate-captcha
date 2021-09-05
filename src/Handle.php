@@ -94,7 +94,7 @@ abstract class Handle implements HandleInterface
 			return $ext;
 		}
 
-		if(!empty($this->config['compress']) && $ext != '.jpg') {
+		if(empty($this->config['compress']) && ($ext != '.jpg' || $ext != '.jepg')) {
 			$ext = '.jpg';
 		}
 
