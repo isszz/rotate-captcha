@@ -174,6 +174,7 @@ echo $image;
 // 正常这个应该是验证码的容器dom, 需要把验证码渲染到这个dom容器
 // 后面再改吧= =...
 $('.J_open_captcha').rotateCaptcha({
+    api: '/common/captcha', // 获取验证码相关的api接口, 需要包含(rotate|verify|img)
     // 初始化
     init: function (self) {
         console.log(self);
