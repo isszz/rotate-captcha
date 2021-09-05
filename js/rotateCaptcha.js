@@ -1,6 +1,6 @@
 define(function (require, exports, module) {
 
-    require('global'),
+    // 用了seajs - -...
     require('modal');
     require('template.web');
 
@@ -17,6 +17,7 @@ define(function (require, exports, module) {
         width: 260,
         successClose: 1500,
         timerProgressBar: !0,
+        api: '',
         init: function (RotateCaptcha) {}, // 初始化
         success: function () {}, // 验证成功
         fail: function () {}, // 验证失败
@@ -107,9 +108,9 @@ define(function (require, exports, module) {
             _this.runtime.loaded = !1;
             _this.$captchaImg.addClass('captcha-loading');
             
-            $.getJSON('https://vmd.co/common/captcha/rotate').done(function(res) {
+            $.getJSON(_this.options.api + '/rotate').done(function(res) {
                 if(res.code === 0) {
-                    _this.$rotateCaptchaImg = _this.$captchaImg.find('img').attr('src', 'https://vmd.co/common/captcha/img?id=' + res.data).css({transform: 'rotate(0deg)'});
+                    _this.$rotateCaptchaImg = _this.$captchaImg.find('img').attr('src', _this.options.api + '/img?id=' + res.data).css({transform: 'rotate(0deg)'});
 
                     _this.$rotateCaptchaImg[0].onload = function () {
                         _this.runtime.loaded = !0;
@@ -262,7 +263,7 @@ define(function (require, exports, module) {
         check() {
             var _this = this;
 
-            $.getJSON('https://vmd.co/common/captcha/verify', {angle: _this.runtime.deg}).done(function(res) {
+            $.getJSON(_this.options.api +'/verify', {angle: _this.runtime.deg}).done(function(res) {
                 if(res.code === 0) {
                     _this.runtime.state = !0;
                     _this.$coordinate.hide();
