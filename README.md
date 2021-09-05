@@ -167,6 +167,36 @@ header('Content-Disposition: inline; filename=captcha_' . $str . '.' . $format);
 header('Content-type: image/'. $format);
 echo $image;
 ```
+##### 前端使用, 暂时代码逻辑有点问题, 因为只是为了做功能测试
+```javascript
+// J_open_captcha 需要触发打开验证码
+// 这里设计逻辑有问题, 当时需要做测试没细想这个- -...
+// 正常这个应该是验证码的容器dom, 需要把验证码渲染到这个dom容器
+// 后面再改吧= =...
+$('.J_open_captcha').rotateCaptcha({
+    // 初始化
+    init: function (self) {
+        console.log(self);
+    },
+    // 验证成功, 例如发送验证的后续操作, 之类的
+    success: function() {
+        console.log('captcha state：success');
+    },
+    // 验证失败
+    fail: function() {
+        console.log('captcha state：fail');
+    },
+    // 触发验证时回调验证状态state
+    complete: function(state) {
+        console.log('captcha complete， state：', state);
+    },
+    // 关闭验证码窗口并返回验证状态state
+    close: function(state) {
+        console.log('captcha close， state：', state);
+    }
+});
+
+```
 
 ## 结语
 > 因为是基于tp6写的代码, 可能依赖的tp6的部分有点多, 稍后会出一个不依赖任何框架的版本
