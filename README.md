@@ -43,97 +43,109 @@ return [
 <?php
 declare (strict_types = 1);
 
+namespace app\common\controller;
+
 use isszz\captcha\rotate\facade\Captcha as RotateCaptcha;
 
-// 用于测试, 这部分, 可以自己整个素材库, 去数据库, 或者缓存下来总之很灵活
-$list = [
-    '1.png',
-    '2.png',
-    '1.jpg',
-    '2.jpg',
-    '3.jpg',
-    '4.jpg',
-    '5.jpg',
-    '6.jpg',
-    '7.jpg',
-    '8.jpg',
-    '9.jpg',
-    '10.jpg',
-    '11.jpg',
-    '12.jpg',
-    '13.jpg',
-];
+use think\Response;
+use think\Request;
 
-// upload_path 需要自己写一个
+// 这个用自己的哦
+use app\common\traits\Showmsg;
 
-// 随机拿一个图片
-$key = array_rand($list, 1);
-if(isset($list[$key])) {
-    // 从素材存放目录拿一个图
-    $image = upload_path('captcha_mtl') . $list[$key];  
-}
-
-// 生成验证码需要的图片
-$data = RotateCaptcha::create(
-    $image,
-    upload_path('captcha') // 用于存储生成图片的目录
-)->get(260); // 260为最终生成的图片尺寸
-
-if(!$data) {
-    $this->result(1, 'error');
-}
-// $data['str']是图片的path加密, 用于前端交换验证码图片
-// 这里前端不涉及拿到角度, 都是去后端验证
-$this->result(0, 'success', $data['str']);
-
-```
-
-##### 前端传递str字段给后端拿图片显示到前端
-
-**tp6在控制器返回图片文件**
-```php
-// tp6在控制器返回图片文件
-public function img(Request $request)
+class Captcha
 {
-    $str = $request->get('str');
+    use Showmsg;
 
-    if(empty($str)) {
-        return '';
+    /**
+     * 生成验证码图片和相关信息
+     */
+    public function rotate(Request $request)
+    {
+        // 用于测试, 这部分, 可以自己整个素材库, 去数据库, 或者缓存下来总之很灵活
+        $list = [
+            '1.png',
+            '2.png',
+            '1.jpg',
+            '2.jpg',
+            '3.jpg',
+            '4.jpg',
+            '5.jpg',
+            '6.jpg',
+            '7.jpg',
+            '8.jpg',
+            '9.jpg',
+            '10.jpg',
+            '11.jpg',
+            '12.jpg',
+            '13.jpg',
+        ];
+
+        // upload_path 需要自己写一个
+
+        // 随机拿一个图片
+        $key = array_rand($list, 1);
+        if(isset($list[$key])) {
+            // 从素材存放目录拿一个图
+            $image = upload_path('captcha_mtl') . $list[$key];  
+        }
+
+        // 生成验证码需要的图片
+        $data = RotateCaptcha::create(
+            $image,
+            upload_path('captcha') // 用于存储生成图片的目录
+        )->get(260); // 260为最终生成的图片尺寸
+
+        if(!$data) {
+            $this->result(1, 'error');
+        }
+        // $data['str']是图片的path加密, 用于前端交换验证码图片
+        // 这里前端不涉及拿到角度, 都是去后端验证
+        $this->result(0, 'success', $data['str']);
     }
 
-    [$format, $image] = RotateCaptcha::img($str, upload_path('captcha'));
+    /**
+     * 通过前端传递str字段给后端叫唤图片显示到前端
+     */
+    public function img(Request $request)
+    {
+        $str = $request->get('id');
 
-    if(empty($image)) {
-        return '';
+        [$format, $image] = RotateCaptcha::img($str, upload_path('captcha'));
+
+        if(empty($image)) {
+            return '';
+        }
+
+        return response($image, 200, ['Content-Length' => strlen($image)])->contentType('image/'. trim($format, '.'));
+    }
+    
+    /**
+     * 验证
+     */
+    public function verify(Request $request)
+    {
+        $angle = $request->get('angle');
+
+        if(empty($angle)) {
+            return false;
+        }
+
+        if(RotateCaptcha::check($angle)) {
+            $this->result(0, 'success');
+        }
+
+        $this->result(1, 'error');
     }
 
-    return response($image, 200, ['Content-Length' => strlen($image)])->contentType('image/'. trim($format, '.'));
 }
-```
 
-**其他的框架/未经测试**
+```
+##### 在其他的框架输出图片/未经测试
 ```php
 header('Content-Disposition: inline; filename=captcha_' . $str . '.' . $format);
 header('Content-type: image/'. $format);
 echo $image;
-```
-
-##### 验证
-```php
-public function verify(Request $request)
-{
-    $angle = $request->get('angle');
-
-    if(empty($angle)) {
-        return false;
-    }
-
-    if(RotateCaptcha::check($angle)) {
-        $this->result(0, 'success');
-    }
-
-    $this->result(1, 'error');
-}
 ```
 
 ## 结语
