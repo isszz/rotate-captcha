@@ -1,6 +1,7 @@
 # Rotate captcha
 旋转图片角度验证码, 包含php生成验证图片(gd 或者 imagick)
 
+
 ## PHP部分说明
 GD方式在本地开发环境PHP8X做了测试可以正常使用
 Imagick方式只做了基本的测试
@@ -11,6 +12,11 @@ Imagick方式只做了基本的测试
 依赖jquery, 暂时使用了一个model插件, 下次更新把这个model改成接口, 可对接自己的model
 
 vue, react版本有能力的朋友参考jquery版自己实现下哦
+
+## 安装
+```
+composer require isszz/rotate-captcha -vvv
+```
 
 ## 配置说明
 ```php
