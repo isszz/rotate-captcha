@@ -173,6 +173,7 @@ echo $image;
 // 这里设计逻辑有问题, 当时需要做测试没细想这个- -...
 // 正常这个应该是验证码的容器dom, 需要把验证码渲染到这个dom容器
 // 后面再改吧= =...
+// 对了, 用了seajs, 这个可以删了, 直接引入js使用
 $('.J_open_captcha').rotateCaptcha({
     api: '/common/captcha', // 获取验证码相关的api接口, 需要包含(rotate|verify|img)
     // 初始化
