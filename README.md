@@ -144,6 +144,18 @@ class Captcha
 ```
 ##### 在其他的框架输出图片/未经测试
 ```php
+$str = $_GET['str'] ?? null;
+
+if(empty($str)) {
+    echo '';
+}
+
+[$format, $image] = RotateCaptcha::img($str, upload_path('captcha'));
+
+if(empty($image)) {
+    echo '';
+}
+
 header('Content-Disposition: inline; filename=captcha_' . $str . '.' . $format);
 header('Content-type: image/'. $format);
 echo $image;
