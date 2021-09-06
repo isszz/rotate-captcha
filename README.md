@@ -118,9 +118,9 @@ class Captcha
      */
     public function img(Request $request)
     {
-        $str = $request->get('id');
+        $id = $request->get('id');
 
-        [$format, $image] = RotateCaptcha::img($str, upload_path('captcha'));
+        [$format, $image] = RotateCaptcha::img($id, upload_path('captcha'));
 
         if(empty($image)) {
             return '';
@@ -152,53 +152,89 @@ class Captcha
 ```
 ##### 没有使用框架输出图片/未经测试
 ```php
-$str = $_GET['str'] ?? null;
+$id = $_GET['id'] ?? null;
 
-if(empty($str)) {
+if(empty($id)) {
     echo '';
 }
 
-[$format, $image] = RotateCaptcha::img($str, upload_path('captcha'));
+[$format, $image] = RotateCaptcha::img($id, upload_path('captcha'));
 
 if(empty($image)) {
     echo '';
 }
 
-header('Content-Disposition: inline; filename=captcha_' . $str . '.' . $format);
+header('Content-Disposition: inline; filename=captcha_' . $id . '.' . $format);
 header('Content-type: image/'. $format);
 echo $image;
 ```
-##### 前端使用, 暂时代码逻辑有点问题, 因为只是为了做功能测试
+## 前端配置项
 ```javascript
-// J_open_captcha 需要触发打开验证码
-// 这里设计逻辑有问题, 当时需要做测试没细想这个- -...
-// 正常这个应该是验证码的容器dom, 需要把验证码渲染到这个dom容器
-// 后面再改吧= =...
-// 对了, 用了seajs, 这个可以删了, 直接引入js使用
-$('.J_open_captcha').rotateCaptcha({
-    api: '/common/captcha', // 获取验证码相关的api接口, 需要包含(rotate|verify|img)
-    // 初始化
-    init: function (self) {
-        console.log(self);
+options = {
+    theme: '#07f', // 验证码主色调
+    title: '安全验证',
+    desc: '拖动滑块，使图片角度为正',
+    width: 305, // 暂时无用, 计划用于大小设置
+    successClose: 1500, // 验证成功后页面关闭时间
+    timerProgressBar: !0, // 验证成功后关闭时是否显示进度条
+    url: {
+        info: '/captcha', // 获取验证码信息
+        check: '/captcha/check', // 验证
+        img: '/captcha/img', // 交换图片
     },
-    // 验证成功, 例如发送验证的后续操作, 之类的
-    success: function() {
-        console.log('captcha state：success');
-    },
-    // 验证失败
-    fail: function() {
-        console.log('captcha state：fail');
-    },
-    // 触发验证时回调验证状态state
-    complete: function(state) {
-        console.log('captcha complete， state：', state);
-    },
-    // 关闭验证码窗口并返回验证状态state
-    close: function(state) {
-        console.log('captcha close， state：', state);
-    }
+    init: function (captcha) {}, // 初始化
+    success: function () {}, // 验证成功
+    fail: function () {}, // 验证失败
+    complete: function (state) {}, // 触发验证, 不管成功与否
+    close: function (state) {}, // 关闭验证码窗口并返回验证状态state
+};
+```
+### 前端使用
+```javascript
+// 点击某个dom触发modal
+// 此处的modal换成自己框架的
+element.find('.J_open_captcha').off('click.open.captcha').on('click.open.captcha', function(e) {
+    e.preventDefault();
+    $.modal.flow({
+        closeType: !0,
+        content: '<div class="J__captcha__"></div>',
+        // 你的modal初始化回调内, 或者在show回调内放置captcha的初始化
+        init: function(modal) {
+            // 这里是重点渲染captcha到J__captcha__这个dom里面
+            modal.element.find('.J__captcha__').captcha({
+                url: {
+                    create: '/common/captcha/rotate', // 获取验证码信息
+                    check: '/common/captcha/verify', // 验证
+                    img: '/common/captcha/img', // 交换旋转图
+                },
+                // 初始化回调
+                init: function (captcha) {
+                    // console.log(captcha);
+                },
+                // 验证成回调
+                success: function() {
+                    console.log('Captcha state：success');
+                },
+                // 验证失败回调
+                fail: function() {
+                    console.log('Captcha state：fail');
+                },
+                // 触发验证回调, 不管成功与否
+                complete: function(state) {
+                    console.log('Captcha complete， state：', state);
+                },
+                // 验证码触发关闭(验证成功后需要关闭)
+                close: function(state) {
+                    modal.close(); // 关闭你的modal
+                    console.log('Captcha close， state：', state);
+                }
+            });
+            // 获取Captcha实例
+            // var captcha = modal.element.find('.J__captcha__').data('captcha');
+            // console.log(captcha.state());
+        }
+    });
 });
-
 ```
 
 ## 结语
