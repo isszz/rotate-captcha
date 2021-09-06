@@ -1,14 +1,12 @@
+/*! Rotate captcha - v0.0.1 | https://github.com/isszz/rotate-captcha | https://cfyun.cc | Copyright (c) 2021 CFYun | MIT license */
 define(function (require, exports, module) {
-
-    // 用了seajs - -...
-    require('modal');
-    require('template.web');
 
     require('./style.css');
 
-    var libName = 'rotateCaptcha';
+    var libName = 'captcha';
     var index = 0;
     var instances = [];
+    var isTouch = 'ontouchstart' in window;
 
     var defaults = {
         theme: '#07f',
@@ -17,17 +15,19 @@ define(function (require, exports, module) {
         width: 260,
         successClose: 1500,
         timerProgressBar: !0,
-        api: '',
-        init: function (RotateCaptcha) {}, // 初始化
+        url: {
+            info: '/captcha', // 获取验证码信息
+            check: '/captcha/check', // 验证
+            img: '/captcha/img', // 交换图片
+        },
+        init: function (captcha) {}, // 初始化
         success: function () {}, // 验证成功
         fail: function () {}, // 验证失败
         complete: function (state) {}, // 触发验证, 不管成功与否
         close: function (state) {}, // 关闭验证码窗口
     };
 
-	template.defaults.escape = !1;
-
-	class RotateCaptcha {
+	class Captcha {
         constructor(element, options) {
             var _this = this;
 
@@ -37,43 +37,14 @@ define(function (require, exports, module) {
 
             _this.element = element;
 
-            _this.element.off('click.open.' + libName).on('click.open.' + libName, function(e) {
-                e.preventDefault();
-                _this.show();
-            });
-
-            // _this.render();
-        }
-
-        show() {
-            var _this = this;
-
-            // console.log(_this.captchaHTML(_this.options.id, _this.options.theme, _this.options.title, _this.options.desc))
-
-            // var render = template.compile(captchaHTML);
-
-            // this.html = $(render(_this.options));
-
-            // _this.element = $(render(_this.options)).appendTo('body');
-            _this.modal = null;
-            $.modal.flow({
-                closeType: !0,
-                content: _this.captchaHTML(_this.options),
-                show: function(modal) {
-                    _this.modal = modal;
-                    _this.render(modal.element.find('.captcha-root'));
-                },
-                close: function(modal) {
-                    _this.options.close(_this.runtime.state);
-                }
-            });
-
+            _this.render();
         }
         
-        render(elem) {
+        render() {
             var _this = this;
 
-            _this.$elem = elem;
+            _this.element.html(_this.captchaHTML(_this.options));
+            _this.$elem = _this.element.find('.captcha-root');
 
             _this.runtime = {
                 deg: 0,
@@ -84,17 +55,16 @@ define(function (require, exports, module) {
 
             _this.options.init(_this);
 
+            _this.$main = _this.$elem.find('.captcha-main');
 
-            _this.$main = elem.find('.captcha-main');
+            _this.$captchaImgWrap = _this.$elem.find('.captcha-img');
+            _this.$captchaImg = _this.$elem.find('.captcha-img img');
+            _this.$coordinate = _this.$elem.find('.captcha-coordinate');
 
-            _this.$slideDragWrap = elem.find('.captcha-control');
-            _this.$slideDragBtn = elem.find('.captcha-control-button');
-            _this.$coordinate = elem.find('.captcha-coordinate');
-            _this.$controlWrap = elem.find('.captcha-control-wrap');
-
-            _this.$captchaImg = elem.find('.captcha-img');
+            _this.$control = _this.$elem.find('.captcha-control');
+            _this.$controlWrap = _this.$elem.find('.captcha-control-wrap');
+            _this.$controlButton = _this.$elem.find('.captcha-control-button');
             
-            // _this.controlBorWrap = elem.find('.captcha-control');
             _this.loadImg(function() {
                 _this.events();
             });
@@ -106,16 +76,15 @@ define(function (require, exports, module) {
             callback = callback || function() {};
             
             _this.runtime.loaded = !1;
-            _this.$captchaImg.addClass('captcha-loading');
+            _this.$captchaImgWrap.addClass('captcha-loading');
             
-            $.getJSON(_this.options.api + '/rotate').done(function(res) {
+            $.getJSON(_this.options.url.create).done(function(res) {
                 if(res.code === 0) {
-                    _this.$rotateCaptchaImg = _this.$captchaImg.find('img').attr('src', _this.options.api + '/img?id=' + res.data).css({transform: 'rotate(0deg)'});
+                    _this.$captchaImg = _this.$captchaImgWrap.find('img').attr('src', _this.options.url.img + '?id=' + res.data).css({transform: 'rotate(0deg)'});
 
-                    _this.$rotateCaptchaImg[0].onload = function () {
+                    _this.$captchaImg[0].onload = function () {
                         _this.runtime.loaded = !0;
-                        _this.$captchaImg.removeClass('captcha-loading');
-                        // console.log('captcha loaded');
+                        _this.$captchaImgWrap.removeClass('captcha-loading');
                     };
 
                     if(typeof callback == 'function') {
@@ -127,11 +96,11 @@ define(function (require, exports, module) {
         
         events(elem) {
             var _this = this;
-
-            _this.initMouse();
-            _this.initTouch();
-            // this._touchstart();
-            // this._touchend();
+            if(isTouch) {
+                _this.initTouch();
+            } else {
+                _this.initMouse();
+            }
         }
 
         spinImg() {
@@ -143,21 +112,22 @@ define(function (require, exports, module) {
                 _this.$coordinate.hide();
             }
             
-            _this.$rotateCaptchaImg.css({transform: 'rotate('+ this.runtime.deg +'deg)'});
+            _this.$captchaImg.css({transform: 'rotate('+ this.runtime.deg +'deg)'});
             // console.log(this.runtime);
         }
 
         initMouse() {
 			var _this = this;
 			var ifThisMousedown = !1;
-			_this.$slideDragBtn.on('mousedown.' + libName, function (e) {
-                if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$slideDragBtn.is(':animated')) {
+			_this.$controlButton.on('mousedown.' + libName, function (e) {
+                if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$controlButton.is(':animated')) {
 					return !1;
                 }
+                console.log('mouse');
 
 				ifThisMousedown = !0;
 				var disPageX = e.pageX;
-				_this.$slideDragBtn.addClass('captcha-button-active');
+				_this.$controlButton.addClass('captcha-button-active');
 
 				$(document).on('mousemove.' + libName, function (e) {
 
@@ -185,13 +155,13 @@ define(function (require, exports, module) {
 				}
 
 				$(document).off('mousemove.' + libName);
-                _this.$slideDragBtn.removeClass('captcha-button-active');
-                // _this.$slideDragBtn.css({transform: 'translateX(0px)'}).removeClass('captcha-button-active');
+                _this.$controlButton.removeClass('captcha-button-active');
+                // _this.$controlButton.css({transform: 'translateX(0px)'}).removeClass('captcha-button-active');
 
                 if(!_this.runtime.deg || _this.runtime.left < 5) {
                     _this.$coordinate.hide();
-                    _this.$rotateCaptchaImg.css({transform: 'rotate(0deg)'});
-                    _this.$slideDragBtn.css({transform: 'translateX(0px)'});
+                    _this.$captchaImg.css({transform: 'rotate(0deg)'});
+                    _this.$controlButton.css({transform: 'translateX(0px)'});
 					return !1;
                 }
 
@@ -207,20 +177,21 @@ define(function (require, exports, module) {
 
             var disPageX = 0;
 
-            _this.$slideDragBtn.on({
+            _this.$controlButton.on({
                 'touchstart.captcha' :function (e) {
-                    if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$slideDragBtn.is(':animated')) {
+                    if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$controlButton.is(':animated')) {
                         return !1;
                     }
+                    console.log('touch');
                     
 				    ifThisTouchStart = !0;
                     disPageX = e.originalEvent.targetTouches[0].pageX;
 
-				    _this.$slideDragBtn.addClass('captcha-button-active');
+				    _this.$controlButton.addClass('captcha-button-active');
                 },
                 'touchmove.captcha': function (e) {
                     e.preventDefault();
-                    if (!ifThisTouchStart || _this.dragTimerState || _this.$slideDragBtn.is(':animated')) {
+                    if (!ifThisTouchStart || _this.dragTimerState || _this.$controlButton.is(':animated')) {
                         return !1;
                     }
 
@@ -240,16 +211,16 @@ define(function (require, exports, module) {
                         return !1;
                     }
 
-                    if (_this.$slideDragBtn.is(':animated')) {
+                    if (_this.$controlButton.is(':animated')) {
                         return !1;
                     }
     
-                    _this.$slideDragBtn.removeClass('captcha-button-active');
+                    _this.$controlButton.removeClass('captcha-button-active');
 
                     if(!_this.runtime.deg || _this.runtime.left < 5) {
                         _this.$coordinate.hide();
-                        _this.$rotateCaptchaImg.css({transform: 'rotate(0deg)'});
-                        _this.$slideDragBtn.css({transform: 'translateX(0px)'});
+                        _this.$captchaImg.css({transform: 'rotate(0deg)'});
+                        _this.$controlButton.css({transform: 'translateX(0px)'});
                         return !1;
                     }
     
@@ -263,44 +234,37 @@ define(function (require, exports, module) {
         check() {
             var _this = this;
 
-            $.getJSON(_this.options.api +'/verify', {angle: _this.runtime.deg}).done(function(res) {
+            $.getJSON(_this.options.url.check, {angle: _this.runtime.deg}).done(function(res) {
                 if(res.code === 0) {
                     _this.runtime.state = !0;
                     _this.$coordinate.hide();
                     _this.$main.addClass('captcha-success');
                     _this.options.success();
                     _this.options.complete(!0);
-                    _this.$slideDragBtn.off('touchmove.captcha');
+                    _this.$controlButton.off('touchmove.captcha');
 
                     if(_this.options.successClose) {
-                        _this.timerProgressBar(parseInt(_this.options.successClose) || 2000);
+                        _this.timerProgressBar(parseInt(_this.options.successClose) || 1500);
                     }
 
                     return !0;
                 }
 
-                _this.runtime = {
-                    deg: 0,
-                    left: 0,
-                    state: !1,
-                    loaded: !1,
-                };
-                
                 _this.options.fail();
                 _this.options.complete(!1);
 
                 _this.dragTimerState = !0;
                 _this.$main.addClass('captcha-fail');
 
-                _this.$slideDragWrap.addClass('captcha-control-horizontal').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
+                _this.$control.addClass('captcha-control-horizontal').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
                     $(this).removeClass('captcha-control-horizontal');
                 });
-                _this.$slideDragBtn.delay(700).animate({
+                _this.$controlButton.delay(700).animate({
                     transform: 'translateX(0px)'
                 }, function () {
                     _this.dragTimerState = !1;
                     _this.$main.removeClass('captcha-fail');
-                    _this.$slideDragBtn.css({transform: 'translateX(0px)'});
+                    _this.$controlButton.css({transform: 'translateX(0px)'});
                     _this.refresh();
                 });
             });
@@ -312,8 +276,8 @@ define(function (require, exports, module) {
 
             if (x < 0) {
                 x = 0;
-            } else if (x >= (_this.$slideDragWrap.width() - _this.$slideDragBtn.outerWidth())) {
-                x = _this.$slideDragWrap.width() - _this.$slideDragBtn.outerWidth();
+            } else if (x >= (_this.$control.width() - _this.$controlButton.outerWidth())) {
+                x = _this.$control.width() - _this.$controlButton.outerWidth();
             }
 
             _this.runtime.deg = (360 / 210) * x;
@@ -321,23 +285,23 @@ define(function (require, exports, module) {
             var isFail = _this.$main.hasClass('captcha-fail');
 
             if (x > 211) {
-                _this.$slideDragBtn.css({transform: 'translateX(0px)'});
+                _this.$controlButton.css({transform: 'translateX(0px)'});
             }
 
             if(!isFail) {
                 if (x < 211 && x > -1) {
                     if (x == 0) {
-                        _this.$slideDragBtn.css({transform: 'translateX(0px)'});
+                        _this.$controlButton.css({transform: 'translateX(0px)'});
                     } else {
-                        _this.$slideDragBtn.css({transform: 'translateX('+ x +'px)'});
+                        _this.$controlButton.css({transform: 'translateX('+ x +'px)'});
                     }
 
                 } else {
                     _this.$main.addClass('captcha-fail');
-                    _this.$slideDragBtn.css({transform: 'translateX(210px)'}).removeClass('captcha-button-active');
+                    _this.$controlButton.css({transform: 'translateX(210px)'}).removeClass('captcha-button-active');
 
                     _this.$controlWrap.unbind();
-                    _this.$slideDragBtn.unbind();
+                    _this.$controlButton.unbind();
                 }
             }
             
@@ -354,13 +318,13 @@ define(function (require, exports, module) {
 
             if(!_this.options.timerProgressBar) {
                 setTimeout(function() {
-                    _this.modal.close();
+                    _this.options.close(_this.runtime.state);
                 }, timer);
                 return !1;
             }
 
             setTimeout(function() {
-                _this.modal.close();
+                _this.options.close(_this.runtime.state);
             }, timer + 10);
 
             var timerProgressBar = _this.$elem.find('.captcha-timer-progress-bar')[0] || null;
@@ -377,23 +341,33 @@ define(function (require, exports, module) {
             }, 10);
         }
 
-        refresh() {
-            this.$coordinate.hide();
-            this.loadImg(this.$elem);
-		}
+        state() {
+            return this.runtime.state || !1;
+        }
 
-        destroy() {
+        refresh() {
             this.runtime = {
                 deg: 0,
                 left: 0,
                 state: !1,
                 loaded: !1,
             };
-            this.modal.close();
+            this.$coordinate.hide();
+            this.loadImg(this.$elem);
+		}
+
+        destroy() {
+            this.options.close(this.runtime.state);
+            this.runtime = {
+                deg: 0,
+                left: 0,
+                state: !1,
+                loaded: !1,
+            };
         }
 
         close() {
-            this.modal.close();
+            this.destroy();
         }
 
         captchaHTML(options) {
@@ -432,7 +406,17 @@ define(function (require, exports, module) {
                                         </div>
                                     </div>
                                     <div class="captcha-coordinate"></div>
-                                    <div class="captcha-state"><i class="captcha-state-icon"></i></div>
+                                    <div class="captcha-state">
+                                        <svg class="captcha-state-icon-success" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 86.6986 86.6986">
+                                            <foreignObject><style xmlns="http://www.w3.org/1999/xhtml">@-webkit-keyframes drawLine{100%{-webkit-stroke-dashoffset: 0;stroke-dashoffset: 0;}}@keyframes drawLine{100%{-webkit-stroke-dashoffset: 0;stroke-dashoffset: 0;}}svg.captcha-state-icon-success path{fill:none;stroke:#fff;stroke-width:3.7253;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:49 51;stroke-dashoffset:50;animation:drawLine 400ms ease-out 90ms forwards;}</style></foreignObject>
+                                            <path class="path-success" d="M26.316,42.859L37.9984,54.5414L60.3826,32.1572"></path>
+                                        </svg>
+                                        <svg class="captcha-state-icon-fail" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 86.6986 86.6986">
+                                            <foreignObject><style xmlns="http://www.w3.org/1999/xhtml">@-webkit-keyframes drawLine{100%{-webkit-stroke-dashoffset:0;stroke-dashoffset:0;}}@keyframes drawLine{100%{-webkit-stroke-dashoffset: 0;stroke-dashoffset: 0;}}svg.captcha-state-icon-fail path{fill:none;stroke:#fff;stroke-dasharray:42 44;stroke-dashoffset:-43;stroke-width:3.7253;stroke-linecap:round;stroke-linejoin:round;}.path-1{animation:drawLine 400ms ease-out 80ms forwards;}.path-2{animation:drawLine 400ms ease-out 280ms forwards;}</style></foreignObject>
+                                            <path class="path-1" d="M28.774,57.9246L57.9247,28.7739"></path>
+                                            <path class="path-2" d="M57.9246,57.9246L28.7739,28.7739"></path>
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
                             <div class="captcha-control">
@@ -452,7 +436,7 @@ define(function (require, exports, module) {
     $.fn[libName] = function(options) {
         return this.each(function() {
             if(!$.data(this, libName)) {
-                var instance = new RotateCaptcha($(this), options);
+                var instance = new Captcha($(this), options);
                 $.data(this, libName, instance);
                 instances.push(instance);
             }
