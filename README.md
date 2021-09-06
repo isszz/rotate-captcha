@@ -200,6 +200,7 @@ element.find('.J_open_captcha').off('click.open.captcha').on('click.open.captcha
         content: '<div class="J__captcha__"></div>',
         // 你的modal初始化回调内, 或者在show回调内放置captcha的初始化
         init: function(modal) {
+            // 使用验证码只关注这部分
             // 这里是重点渲染captcha到J__captcha__这个dom里面
             modal.element.find('.J__captcha__').captcha({
                 url: {
