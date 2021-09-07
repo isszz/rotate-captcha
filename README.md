@@ -240,8 +240,3 @@ element.find('.J_open_captcha').off('click.open.captcha').on('click.open.captcha
     });
 });
 ```
-
-## 结语
-> 因为是基于tp6写的代码, 可能依赖的tp6的部分有点多, 稍后会出一个不依赖任何框架的版本
-> JS部分也会逐步移除一些没有发出来的部分
-> 
