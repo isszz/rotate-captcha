@@ -13,9 +13,9 @@ class Captcha
      */
     private string $image = '';
 
-	/**
-	 * Image information
-	 */
+    /**
+     * Image information
+     */
     private array $info = [];
 
 	/**
