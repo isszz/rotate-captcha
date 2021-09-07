@@ -8,9 +8,9 @@ use think\Session;
 
 class Captcha
 {
-	/**
-	 * The image path used to generate the rotate captcha image
-	 */
+    /**
+     * The image path used to generate the rotate captcha image
+     */
     private string $image = '';
 
 	/**
@@ -319,10 +319,8 @@ class Captcha
 	{
 		if (!file_exists($dirname) && !is_dir($dirname) && !mkdir($dirname, 0777, true)) {
 			throw new CaptchaException('Directory creation failed.');
-			return;
 		} else if (!is_writeable($dirname)) {
 			throw new CaptchaException('The directory does not have write permission.');
-			return;
 		}
 
 		@chmod($dirname, 0777);
