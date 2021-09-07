@@ -17,7 +17,7 @@ Imagick方式只做了基本的测试
 **如有BUG请issue, 谢谢**
 
 ## JS部分说明
-依赖jquery, 暂时使用了一个model插件, 下次更新把这个model改成接口, 可对接自己的model
+依赖jquery, ~~暂时使用了一个model插件, 下次更新把这个model改成接口, 可对接自己的model~~
 
 vue, react版本有能力的朋友参考jquery版自己实现下哦
 
