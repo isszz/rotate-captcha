@@ -71,9 +71,9 @@ class ImagickHandle extends Handle
 	 */
 	public function save(int $size = 350): bool
 	{
-        if (!$this->build($size) || !$this->back) {
-            return false;
-        }
+		if (!$this->build($size) || !$this->back) {
+			return false;
+		}
 
 		// $filepath = $this->cacheFilePath . '1-1-1.jpg';
 

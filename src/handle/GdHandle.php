@@ -93,11 +93,11 @@ class GdHandle extends Handle
             return false;
         }*/
 
-		if(($sizes = $this->calcSize($size)) && $sizes === false) {
-			return false;
-		}
+        if(($sizes = $this->calcSize($size)) && $sizes === false) {
+            return false;
+        }
 
-		[$src_w, $src_h, $dst_w, $dst_h, $dst_scale, $src_scale, $w, $h, $x, $y] = $sizes;
+        [$src_w, $src_h, $dst_w, $dst_h, $dst_scale, $src_scale, $w, $h, $x, $y] = $sizes;
 
         $cropped = imagecreatetruecolor($w, $h);
 

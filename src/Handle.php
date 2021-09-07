@@ -7,12 +7,12 @@ use isszz\captcha\rotate\interface\HandleInterface;
 
 abstract class Handle implements HandleInterface
 {
-    public $info = [];
-    public $image = '';
+	public $info = [];
+	public $image = '';
 
-    public $size = 350;
-    public $back = null;
-    public $front = null;
+	public $size = 350;
+	public $back = null;
+	public $front = null;
 
 	public function calcSize($size = 350)
 	{
@@ -56,13 +56,13 @@ abstract class Handle implements HandleInterface
 		return [$src_w, $src_h, $dst_w, $dst_h, $dst_scale, $src_scale, $w, $h, $x, $y];
 	}
 
-    /**
-     * Set the processed image path and rotation angle to the handle class
-     * 
-     * @param string $cacheFilePath
-     * @param int $degrees
-     * @return bool
-     */
+	/**
+	 * Set the processed image path and rotation angle to the handle class
+	 * 
+	 * @param string $cacheFilePath
+	 * @param int $degrees
+	 * @return bool
+	 */
 	public function setCachePathAndDegrees($cacheFilePath = null, $degrees = 0)
 	{
 		if (empty($cacheFilePath)) {
@@ -82,8 +82,8 @@ abstract class Handle implements HandleInterface
 	/**
 	 * Get file extension
 	 * 
-     * @param string $filePath
-     * @param bool $isIgnoreAfter
+	 * @param string $filePath
+	 * @param bool $isIgnoreAfter
 	 * @return string
 	 */
 	public function getFileExt($filePath = null, $isIgnoreAfter = true)
@@ -105,7 +105,7 @@ abstract class Handle implements HandleInterface
 	 * Hexadecimal color to RGB
 	 * 
 	 * @param string $color
-     * @param bool $isReturnString
+	 * @param bool $isReturnString
 	 * @return string|array
 	 */
 	public function hex2rgb($color, $isReturnString = true)
@@ -133,10 +133,10 @@ abstract class Handle implements HandleInterface
 		foreach ($hex as $key => $vls) {
 			$rgb[] = hexdec($vls);
 		}
-        
-        if($isReturnString) {
-            return implode(', ', $rgb);
-        }
+
+		if($isReturnString) {
+			return implode(', ', $rgb);
+		}
 
 		return $rgb;
 	}
