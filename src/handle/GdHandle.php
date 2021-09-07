@@ -8,7 +8,7 @@ use isszz\captcha\rotate\CaptchaException;
 
 class GdHandle extends Handle
 {
-    public function __construct($image, $config = [])
+    public function __construct(string $image, array $config = [])
     {
         if(!extension_loaded('gd')) {
             throw new CaptchaException('Need to support GD extension.');
@@ -50,7 +50,7 @@ class GdHandle extends Handle
      * @param int $size
      * @return bool
      */
-    public function save($size = 350): bool
+    public function save(int $size = 350): bool
     {
         if (!$this->build($size) || !$this->back) {
             return false;
@@ -205,7 +205,7 @@ class GdHandle extends Handle
      * @param array $info
      * @return array
      */
-    private function formatImageInfo($info = [])
+    private function formatImageInfo(array $info = [])
     {
         if (!in_array($info['mime'], ['image/jpeg', 'image/png'])) {
             throw new CaptchaException('Please use jpeg or png images.');

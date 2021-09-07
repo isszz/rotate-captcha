@@ -11,48 +11,48 @@ class Captcha
 	/**
 	 * The image path used to generate the rotate captcha image
 	 */
-    private $image = '';
+    private string $image = '';
 
 	/**
 	 * Image information
 	 */
-    private $info = [];
+    private array $info = [];
 
 	/**
 	 * Configuration
 	 */
-    private $config = [];
+    private array $config = [];
 
 	/**
 	 * The hash generated according to the angle
 	 */
-    private $hash = '';
+    private string $hash = '';
 
 	/**
 	 * Rotation angle
 	 */
-    private $degrees = 30;
+    private int $degrees = 30;
 
 	/**
 	 * Whether the same angle of the image has been generated
 	 */
-    private $existed = false;
+    private bool $existed = false;
 
 	/**
 	 * Image handle class
 	 */
-    private $handle = null;
+    private ?object $handle = null;
 
 	/**
 	 * Store the path of the generated image
 	 */
-    private $uploadPath = null;
+    private ?string $uploadPath = null;
 
 	/**
 	 * Image Cache path
 	 */
-	private $cachePath = null;
-	private $cacheFilePath = null;
+	private ?string $cachePath = null;
+	private ?string $cacheFilePath = null;
 
     public function __construct(Config $config, Session $session)
     {
@@ -153,58 +153,14 @@ class Captcha
         return $this->info();
     }
 
-    /**
-     * Get information about the generated image
-     * 
-     * @return array
-     */
-    public function info()
-    {
-        return [
-            'hash' => $this->info['hash'],
-            // 'path' => $this->info['path'],
-            'str' => Crypt::encode($this->info['path']),
-            'angle' => $this->info['angle'],
-            // 'cache' => $this->info['cache'],
-            'type' => $this->info['type'],
-            'size' => $this->size,
-            // 'width'  => $this->info['width'],
-            // 'height' => $this->info['height'],
-        ];
-    }
-
-    /**
-     * Build the necessary parameters
-     */
-    public function buildBase()
-    {
-        // Get random angle, generate angle hash
-        $this->degrees = (string) rand(30, 270);
-        // $this->degrees = 70;
-        $this->hash = Crypt::encode($this->degrees, $this->config['salt'], 300);
-        
-        $this->_session->set('captcha_rotate', $this->hash);
-
-        // dd(decrypt('eyJpdiI6ImdIbk9NK0VZUTB2TjZrdStnWnJsZHc9PSIsInZhbHVlIjoicHJOdGh0aFwvSXpOYW5IY3hvcFQ2M3c9PSIsIm1hYyI6IjU4MTE0YzlkMDQxYjNjMjQxZjYwMjA5YTI5NGQxODhhNWQ2NjA3NTQzOWViNGY5NzVkZDVkNGJjZjRhMzY3NGQifQ==', 'cfyun@isszz#rotateVerify'));
-
-        if(is_null($this->uploadPath)) {
-            throw new CaptchaException('Please use the setUploadPath method to configure uploadPath parameters.');
-        }
-
-        $this->cachePath = date('ym', time()) . '/' . md5(md5($this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
-
-        $this->cacheFilePath = $this->uploadPath . $this->cachePath;
-
-        $this->handle->setCachePathAndDegrees($this->cacheFilePath, $this->degrees);
-    }
 
     /**
      * Check if it is rotated to the correct angle
      *
-     * @param string $angle
+     * @param int|float|string $angle
      * @return array
      */
-    public function check($angle = null): bool
+    public function check(int|float|string $angle = null): bool
     {
         if(empty($angle)) {
             return false;
@@ -281,6 +237,51 @@ class Captcha
     }
 
     /**
+     * Get information about the generated image
+     * 
+     * @return array
+     */
+    public function info(): array
+    {
+        return [
+            'hash' => $this->info['hash'],
+            // 'path' => $this->info['path'],
+            'str' => Crypt::encode($this->info['path']),
+            'angle' => $this->info['angle'],
+            // 'cache' => $this->info['cache'],
+            'type' => $this->info['type'],
+            'size' => $this->size,
+            // 'width'  => $this->info['width'],
+            // 'height' => $this->info['height'],
+        ];
+    }
+
+    /**
+     * Build the necessary parameters
+     */
+    public function buildBase(): void
+    {
+        // Get random angle, generate angle hash
+        $this->degrees = (string) rand(30, 270);
+        // $this->degrees = 70;
+        $this->hash = Crypt::encode($this->degrees, $this->config['salt'], 300);
+        
+        $this->_session->set('captcha_rotate', $this->hash);
+
+        // dd(decrypt('eyJpdiI6ImdIbk9NK0VZUTB2TjZrdStnWnJsZHc9PSIsInZhbHVlIjoicHJOdGh0aFwvSXpOYW5IY3hvcFQ2M3c9PSIsIm1hYyI6IjU4MTE0YzlkMDQxYjNjMjQxZjYwMjA5YTI5NGQxODhhNWQ2NjA3NTQzOWViNGY5NzVkZDVkNGJjZjRhMzY3NGQifQ==', 'cfyun@isszz#rotateVerify'));
+
+        if(is_null($this->uploadPath)) {
+            throw new CaptchaException('Please use the setUploadPath method to configure uploadPath parameters.');
+        }
+
+        $this->cachePath = date('ym', time()) . '/' . md5(md5($this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
+
+        $this->cacheFilePath = $this->uploadPath . $this->cachePath;
+
+        $this->handle->setCachePathAndDegrees($this->cacheFilePath, $this->degrees);
+    }
+
+    /**
      * Get configuration
      *
      * @return array
@@ -295,7 +296,7 @@ class Captcha
      *
      * @return object
      */
-    private function handle()
+    private function handle(): object
     {
         if(!is_null($this->handle)) {
             return $this->handle;
@@ -314,7 +315,7 @@ class Captcha
 	 * @param string $dirname
 	 * @return bool
 	 */
-	private function createFolder($dirname)
+	private function createFolder(string $dirname): bool
 	{
 		if (!file_exists($dirname) && !is_dir($dirname) && !mkdir($dirname, 0777, true)) {
 			throw new CaptchaException('Directory creation failed.');
@@ -336,7 +337,7 @@ class Captcha
      * 
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         // Image, already has the same angle
         if($this->existed) {

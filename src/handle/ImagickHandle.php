@@ -12,7 +12,7 @@ use isszz\captcha\rotate\CaptchaException;
 
 class ImagickHandle extends Handle
 {
-	public function __construct($image, $config = [])
+	public function __construct(string $image, array $config = [])
 	{
 		if(!extension_loaded('imagick')) {
 			throw new CaptchaException('Need to support Imagick extension.');
@@ -69,7 +69,7 @@ class ImagickHandle extends Handle
 	 * @param int $size
 	 * @return bool
 	 */
-	public function save($size = 350): bool
+	public function save(int $size = 350): bool
 	{
         if (!$this->build($size) || !$this->back) {
             return false;
@@ -94,7 +94,7 @@ class ImagickHandle extends Handle
 	 * @param int $size
 	 * @return bool
 	 */
-	public function build($size = 350): bool
+	public function build(int $size = 350): bool
 	{
 		/*
 		if(!$this->info || is_null($this->front)) {
