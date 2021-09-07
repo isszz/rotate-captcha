@@ -18,41 +18,41 @@ class Captcha
      */
     private array $info = [];
 
-	/**
-	 * Configuration
-	 */
+    /**
+     * Configuration
+     */
     private array $config = [];
 
-	/**
-	 * The hash generated according to the angle
-	 */
+    /**
+     * The hash generated according to the angle
+     */
     private string $hash = '';
 
-	/**
-	 * Rotation angle
-	 */
+    /**
+     * Rotation angle
+     */
     private int $degrees = 30;
 
-	/**
-	 * Whether the same angle of the image has been generated
-	 */
+    /**
+     * Whether the same angle of the image has been generated
+     */
     private bool $existed = false;
 
-	/**
-	 * Image handle class
-	 */
+    /**
+     * Image handle class
+     */
     private ?object $handle = null;
 
-	/**
-	 * Store the path of the generated image
-	 */
+    /**
+     * Store the path of the generated image
+     */
     private ?string $uploadPath = null;
 
-	/**
-	 * Image Cache path
-	 */
-	private ?string $cachePath = null;
-	private ?string $cacheFilePath = null;
+    /**
+     * Image Cache path
+     */
+    private ?string $cachePath = null;
+    private ?string $cacheFilePath = null;
 
     public function __construct(Config $config, Session $session)
     {
@@ -309,26 +309,26 @@ class Captcha
         return $this->handle = new \isszz\captcha\rotate\handle\GdHandle($this->image, $this->config['gd']);
     }
 
-	/**
-	 * Create a directory
-	 *
-	 * @param string $dirname
-	 * @return bool
-	 */
-	private function createFolder(string $dirname): bool
-	{
-		if (!file_exists($dirname) && !is_dir($dirname) && !mkdir($dirname, 0777, true)) {
-			throw new CaptchaException('Directory creation failed.');
-		} else if (!is_writeable($dirname)) {
-			throw new CaptchaException('The directory does not have write permission.');
-		}
+    /**
+     * Create a directory
+     *
+     * @param string $dirname
+     * @return bool
+     */
+    private function createFolder(string $dirname): bool
+    {
+        if (!file_exists($dirname) && !is_dir($dirname) && !mkdir($dirname, 0777, true)) {
+            throw new CaptchaException('Directory creation failed.');
+        } else if (!is_writeable($dirname)) {
+            throw new CaptchaException('The directory does not have write permission.');
+        }
 
-		@chmod($dirname, 0777);
-		@fclose(@fopen($dirname . '/index.html', 'w'));
-		@chmod($dirname . '/index.html', 0777);
+        @chmod($dirname, 0777);
+        @fclose(@fopen($dirname . '/index.html', 'w'));
+        @chmod($dirname . '/index.html', 0777);
 
-		return true;
-	}
+        return true;
+    }
 
     /**
      * Get the captcha image file content|For testing
