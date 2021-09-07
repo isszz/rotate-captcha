@@ -262,9 +262,9 @@ class Captcha
     public function buildBase(): void
     {
         // Get random angle, generate angle hash
-        $this->degrees = (string) rand(30, 270);
+        $this->degrees = rand(30, 270);
         // $this->degrees = 70;
-        $this->hash = Crypt::encode($this->degrees, $this->config['salt'], 300);
+        $this->hash = Crypt::encode((string) $this->degrees, $this->config['salt'], 300);
         
         $this->_session->set('captcha_rotate', $this->hash);
 
@@ -274,7 +274,7 @@ class Captcha
             throw new CaptchaException('Please use the setUploadPath method to configure uploadPath parameters.');
         }
 
-        $this->cachePath = date('ym', time()) . '/' . md5(md5($this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
+        $this->cachePath = date('ym', time()) . '/' . md5(md5((string) $this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
 
         $this->cacheFilePath = $this->uploadPath . $this->cachePath;
 
