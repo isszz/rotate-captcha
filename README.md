@@ -2,10 +2,7 @@
 旋转图片角度验证码, 包含php生成验证图片(gd 或者 imagick)
 
 ## 演示图
-![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/1.png)
-![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/2.png)
-![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/3.png)
-![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/4.png)
+![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/demo.gif)
 
 ## Ctrl+鼠标左键, 查看演示视频
 <a target="_blank" href="https://www.bilibili.com/blackboard/html5mobileplayer.html?aid=250374453&bvid=BV1wv411w7u1&cid=404070048&page=2"><img src="https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/video-cover.png" alt="点击查看视频演示" /></a>
