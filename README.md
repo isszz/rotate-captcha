@@ -8,7 +8,7 @@
 ![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/4.png)
 
 ## Ctrl+鼠标左键, 查看演示视频
-<a target="_blank" href="https://player.bilibili.com/player.html?aid=250374453&bvid=BV1wv411w7u1&cid=404070048&page=2"><img src="https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/video-cover.png" alt="点击查看视频演示" /></a>
+<a target="_blank" href="https://www.bilibili.com/blackboard/html5mobileplayer.html?aid=250374453&bvid=BV1wv411w7u1&cid=404070048&page=2"><img src="https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/video-cover.png" alt="点击查看视频演示" /></a>
 
 ## PHP部分说明
 GD方式在本地开发环境PHP8X做了测试可以正常使用
