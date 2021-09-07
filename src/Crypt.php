@@ -24,8 +24,9 @@ class Crypt
 		$char = '';
 
 		for ($i = 0; $i < $len; $i++) {
-			if ($x == $l)
+			if ($x == $l) {
 				$x = 0;
+			}
 			$char .= substr($key, $x, 1);
 			$x++;
 		}
@@ -70,8 +71,9 @@ class Crypt
 		$char = $str = '';
 
 		for ($i = 0; $i < $len; $i++) {
-			if ($x == $l)
+			if ($x == $l) {
 				$x = 0;
+			}
 			$char .= substr($key, $x, 1);
 			$x++;
 		}
@@ -86,5 +88,4 @@ class Crypt
 
 		return base64_decode($str);
 	}
-
 }
