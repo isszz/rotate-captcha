@@ -742,10 +742,11 @@
     }
 
     Element.prototype.captcha = function(options) {
-        let instance = new Captcha(this, options);
         if(!this.hasAttribute('data-' + libName)) {
-            this.setAttribute('data-' + libName, instance);
+            let instance = new Captcha(this, options);
             instances.push(instance);
+            this.setAttribute('data-' + libName, true);
+            return instance;
         }
     }
 
