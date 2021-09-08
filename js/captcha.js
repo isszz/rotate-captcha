@@ -13,9 +13,9 @@
         theme: '#07f',
         title: '安全验证',
         desc: '拖动滑块，使图片角度为正',
-        width: 305,
-        successClose: 1500,
-        timerProgressBar: !1,
+        width: 305, // 验证界面的宽度
+        successClose: 1500, // 验证成功后页面关闭时间
+        timerProgressBar: !1, // 验证成功后关闭时是否显示进度条
         timerProgressBarColor: 'rgba(0, 0, 0, 0.2)',
         path: '',
         url: {

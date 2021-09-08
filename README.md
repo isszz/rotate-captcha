@@ -174,9 +174,10 @@ options = {
     theme: '#07f', // 验证码主色调
     title: '安全验证',
     desc: '拖动滑块，使图片角度为正',
-    width: 305, // 暂时无用, 计划用于大小设置
+    width: 305, // 验证界面的宽度
     successClose: 1500, // 验证成功后页面关闭时间
     timerProgressBar: !0, // 验证成功后关闭时是否显示进度条
+    timerProgressBarColor: '#07f', // 进度条颜色
     url: {
         info: '/captcha', // 获取验证码信息
         check: '/captcha/check', // 验证
@@ -196,7 +197,7 @@ options = {
 // .J__captcha__是输出验证码的容器
 // 方式1
 let myCaptcha = document.querySelectorAll('.J__captcha__').item(0).captcha({
-    // 验证失败时显示
+    // 验证成功时显示
     timerProgressBar: !0, // 是否启用进度条
     timerProgressBarColor: '#07f', // 进度条颜色
     url: {
