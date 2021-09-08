@@ -1,7 +1,6 @@
-/*! Rotate captcha CSS - v0.0.1 | https://github.com/isszz/rotate-captcha | https://cfyun.cc | Copyright (c) 2021 CFYun | MIT license */
 .captcha {
     position: relative;
-    width: 305px;
+    width: var(--size-width);
     padding: 20px 15px 25px;
     text-align: center;
     background: #fff; 
@@ -22,17 +21,16 @@
     align-items: center;
     justify-content: center;
 }
-
 .captcha-image {
     position: relative;
     overflow: hidden;
-    margin: 28px auto;
+    margin: var(--size-img-margin) auto;
 }
 .captcha-img {
     position: relative;
     z-index: 999;
-    width: 152px;
-    height: 152px;
+    width: var(--size-img);
+    height: var(--size-img);
     -webkit-border-radius: 50%;
     border-radius: 50%;
     background: #f5f5f5;
@@ -80,7 +78,7 @@
 }
 .captcha-control {
     position: relative;
-    width: 260px;
+    width: var(--size-control);
     height: 50px;
     margin: 0 auto;    
 }
@@ -168,20 +166,20 @@
 }
 /* fade anim */
 @-webkit-keyframes fadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 @keyframes fadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 /* fail anim */
 @-webkit-keyframes horizontal {
@@ -246,8 +244,8 @@
 .captcha .captcha-timer-progress-bar {
     width: 100%;
     height: 4px;
-    background: rgba(0, 0, 0, 0.2);
+    background-color: var(--progress-bar-color);
 }
-/* 屏幕宽度400px以下兼容 */
+
 @media only screen and (max-width:400px) {
 }
