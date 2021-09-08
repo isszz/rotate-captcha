@@ -190,50 +190,54 @@ options = {
 };
 ```
 ### 前端使用
+
+#### 原生JS版本的使用方式
 ```javascript
-// 点击某个dom触发modal
-// 此处的modal换成自己框架的
-element.find('.J_open_captcha').off('click.open.captcha').on('click.open.captcha', function(e) {
-    e.preventDefault();
-    $.modal.flow({
-        closeType: !0,
-        content: '<div class="J__captcha__"></div>',
-        // 你的modal初始化回调内, 或者在show回调内放置captcha的初始化
-        init: function(modal) {
-            // 使用验证码只关注这部分
-            // 这里是重点渲染captcha到J__captcha__这个dom里面
-            modal.element.find('.J__captcha__').captcha({
-                url: {
-                    create: '/common/captcha/rotate', // 获取验证码信息
-                    check: '/common/captcha/verify', // 验证
-                    img: '/common/captcha/img', // 交换旋转图
-                },
-                // 初始化回调
-                init: function (captcha) {
-                    // console.log(captcha);
-                },
-                // 验证成回调
-                success: function() {
-                    console.log('Captcha state：success');
-                },
-                // 验证失败回调
-                fail: function() {
-                    console.log('Captcha state：fail');
-                },
-                // 触发验证回调, 不管成功与否
-                complete: function(state) {
-                    console.log('Captcha complete， state：', state);
-                },
-                // 验证码触发关闭(验证成功后需要关闭)
-                close: function(state) {
-                    modal.close(); // 关闭你的modal
-                    console.log('Captcha close， state：', state);
-                }
-            });
-            // 获取Captcha实例
-            // var captcha = modal.element.find('.J__captcha__').data('captcha');
-            // console.log(captcha.state());
-        }
-    });
+// .J__captcha__是输出验证码的容器
+// 方式1
+let myCaptcha = document.querySelectorAll('.J__captcha__').item(0).captcha({
+    // 验证失败时显示
+    timerProgressBar: !0, // 是否启用进度条
+    timerProgressBarColor: '#07f', // 进度条颜色
+    url: {
+        create: '/common/captcha/rotate', // 获取验证码信息
+        check: '/common/captcha/verify', // 验证
+        img: '/common/captcha/img', // 交换旋转图
+    },
+    // 初始化回调
+    init: function (captcha) {
+        // console.log(captcha);
+    },
+    // 验证成回调
+    success: function() {
+        console.log('Captcha state：success');
+    },
+    // 验证失败回调
+    fail: function() {
+        console.log('Captcha state：fail');
+    },
+    // 触发验证回调, 不管成功与否
+    complete: function(state) {
+        console.log('Captcha complete， state：', state);
+    },
+    // 验证码触发关闭(验证成功后需要关闭)
+    close: function(state) {
+        modal.close(); // 关闭你的modal
+        console.log('Captcha close， state：', state);
+    }
 });
+// 方式2
+let myCaptcha = new Captcha(document.querySelectorAll('.J__captcha__').item(0), {
+    // options同上...
+});
+```
+#### jquery版本的使用方式
+```javascript
+// .J__captcha__是输出验证码的容器
+modal.element.find('.J__captcha__').captcha({
+    // options同上...
+});
+// 获取Captcha实例
+// var captcha = modal.element.find('.J__captcha__').data('captcha');
+// console.log(captcha.state());
 ```
