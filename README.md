@@ -1,6 +1,13 @@
 # Rotate captcha
 旋转图片角度验证码, 包含php生成验证图片(gd 或者 imagick)
 
+## 更新
+>> 2021-09-10  新增原生JS版本, 优化部分代码
+>> 2021-09-16  增加存储驱动功能可使用session,cache,cookie驱动, 验证方式改为token交换
+>> 2021-09-16  验证方式改为token交换
+>> 2021-09-16  加密方式更改为AES
+>> 2021-09-17  新增输出格式设置，可设置webp，生成图片更小，清晰度更高且支持透明底色
+
 ## 演示图
 ![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/demo.gif)
 
@@ -27,21 +34,26 @@ composer require isszz/rotate-captcha -vvv
 ```php
 <?php
 
+// use isszz\captcha\rotate\drive\CacheDrive;
+// use isszz\captcha\rotate\drive\CookieDrive;
+use isszz\captcha\rotate\drive\SessionDrive;
+
 return [
-    'size' => 350,
+    'size' => 350, // 生成图片尺寸
+    'expire' => 300, // 生成验证有效期
+    'outputType' => 'webp', // 输出类型, png, jpg, webp
     'salt' => '%%*$*$#$~#$^isszz@cfyun.cc^&*$#$~',
     'handle' => 'gd',
-    'sarea' => 10,
+    'earea' => 10, // 容错率
     'gd' => [
         'quality' => 80,
-        'compress' => 0, // 0强制转换jpg白底, 压缩后30KB左右, 1根据图片格式压缩png保持透明
-        'bgcolor' => '#fff', // compress = 0 时, 底色, 只支持16进制颜色
+        'bgcolor' => '', // 底色, #fff
     ],
     'imagick' => [
         'quality' => 80,
-        'compress' => 0, // 0转jpg白底, 压缩后30KB左右, 1png保持背景透明, 有损压缩后90KB左右, 2png保持背景透明, 无损压缩只能剪掉几KB
-        'bgcolor' => 'white', // compress = 0 时, 底色
+        'bgcolor' => '', // 底色, white
     ],
+    'drive' => SessionDrive::class, // 存储驱动, 可以继承 isszz\captcha\rotate\Drive实现自定义
 ];
 ```
 ## PHP部分使用
@@ -100,7 +112,7 @@ class Captcha
         }
 
         // 生成验证码需要的图片
-        $data = RotateCaptcha::create(
+        $data = RotateCaptcha::setLang('zh-cn')->create(
             $image,
             upload_path('captcha') // 用于存储生成图片的目录
         )->get(260); // 260为最终生成的图片尺寸
@@ -112,41 +124,49 @@ class Captcha
         // 这里前端不涉及拿到角度, 都是去后端验证
         $this->result(0, 'success', $data['str']);
     }
-
-    /**
-     * 通过前端传递str字段给后端叫唤图片显示到前端
-     */
-    public function img(Request $request)
-    {
-        $id = $request->get('id');
-
-        [$format, $image] = RotateCaptcha::img($id, upload_path('captcha'));
-
-        if(empty($image)) {
-            return '';
-        }
-
-        return response($image, 200, ['Content-Length' => strlen($image)])->contentType('image/'. trim($format, '.'));
-    }
     
     /**
      * 验证
      */
     public function verify(Request $request)
     {
+        $token = $request->get('token');
         $angle = $request->get('angle');
 
-        if(empty($angle)) {
-            return false;
+        if(empty($token) || empty($angle)) {
+            $this->result(1, 'error');
         }
 
-        if(RotateCaptcha::check($angle)) {
-            $this->result(0, 'success');
+        try {
+            if(RotateCaptcha::setLang('zh-cn')->check($token, $angle) === true) {
+                $this->result(0, 'success');
+            }
+        } catch(CaptchaException $e) {
+            $this->result(1, $e->getMessage());
         }
 
         $this->result(1, 'error');
     }
 
+    /**
+     * 通过前端传递str字段给后端叫唤图片显示到前端
+     */
+    public function img(Request $request)
+    {
+        $str = $request->get('id');
+
+        [$mime, $image] = RotateCaptcha::output($str, upload_path('captcha'));
+
+        if(empty($image)) {
+            return '';
+        }
+
+        return response($image, 200, [
+            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+            'Content-Type' => $mime,
+            'Content-Length' => strlen($image)
+        ]);
+    }
 }
 
 ```
@@ -158,14 +178,16 @@ if(empty($id)) {
     echo '';
 }
 
-[$format, $image] = RotateCaptcha::img($id, upload_path('captcha'));
+[$mime, $image] = RotateCaptcha::img($id, upload_path('captcha'));
 
 if(empty($image)) {
     echo '';
 }
 
-header('Content-Disposition: inline; filename=captcha_' . $id . '.' . $format);
-header('Content-type: image/'. $format);
+header('Cache-Control: private, no-cache, no-store, must-revalidate');
+// header('Content-Disposition: inline; filename=captcha_' . $id . '.' . str_replace('image/', '.', $mime));
+header('Content-type: '. $mime);
+header('Content-Length: '. strlen($image));
 echo $image;
 ```
 ## 前端配置项

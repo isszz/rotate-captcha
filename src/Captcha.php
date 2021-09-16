@@ -3,8 +3,12 @@ declare (strict_types = 1);
 
 namespace isszz\captcha\rotate;
 
+// use isszz\captcha\rotate\CaptchaException;
 use think\Config;
-use think\Session;
+// use think\Session;
+
+use isszz\captcha\rotate\support\request\Request;
+use isszz\captcha\rotate\support\encrypter\Encrypter;
 
 class Captcha
 {
@@ -22,6 +26,16 @@ class Captcha
      * Configuration
      */
     private array $config = [];
+
+    /**
+     * message
+     */
+    private string $message = '';
+
+    /**
+     * The token is the generated verification information
+     */
+    private string $token = '';
 
     /**
      * The hash generated according to the angle
@@ -44,6 +58,21 @@ class Captcha
     private ?object $handle = null;
 
     /**
+     * drive
+     */
+    private ?object $drive = null;
+
+    /**
+     * encrypter
+     */
+    private ?object $encrypter = null;
+
+    /**
+     * lang
+     */
+    private ?object $lang = null;
+
+    /**
      * Store the path of the generated image
      */
     private ?string $uploadPath = null;
@@ -54,14 +83,14 @@ class Captcha
     private ?string $cachePath = null;
     private ?string $cacheFilePath = null;
 
-    public function __construct(Config $config, Session $session)
-    {
-        if(!extension_loaded('gd') && !extension_loaded('imagick')) {
-            throw new CaptchaException('Need to support GD or Imagick extension.');
-        }
+    public const OUTPUT_PNG  = 'png';
+    public const OUTPUT_JPEG = 'jpg';
+    public const OUTPUT_WEBP = 'webp';
 
+    public function __construct(Config $config)
+    {
         $this->_config = $config;
-        $this->_session = $session;
+        // $this->_session = $session;
 
         $this->handleName = 'gd';
 
@@ -76,29 +105,36 @@ class Captcha
      * Create captcha rotate image
      *
      * @param string $image
-     * @return object
+     * @return self
      */
-    public function create($image = '', $uploadPath = null): Captcha
+    public function create($image = '', $uploadPath = null): self
     {
+        if(!extension_loaded('gd') && !extension_loaded('imagick')) {
+            throw new CaptchaException($this->lang()->get('Need to support GD or Imagick extension.'));
+        }
+
 		if (empty($image)) {
-            throw new CaptchaException('Please pass in the material image.');
+            throw new CaptchaException($this->lang()->get('Please pass in the material image.'));
         }
 
         if(is_null($uploadPath)) {
-            throw new CaptchaException('Please configure the uploadPath parameter.');
+            throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
         }
 
         $this->image = $image;
         $this->uploadPath = $uploadPath;
 
-        $this->config = $this->getConfig();
-
 		if (!is_file($this->image)) {
-            throw new CaptchaException('Material image does not exist.');
+            throw new CaptchaException($this->lang()->get('Material image does not exist.'));
         }
+        
+        // Initialize encrypter
+        // $this->encrypter();
+        // $this->encrypter = new Encrypter($this->config('salt'));
 
         // Create image handle class
         $this->handle();
+        $this->drive();
         // Build the necessary parameters
         $this->buildBase();
 
@@ -106,20 +142,19 @@ class Captcha
         if(is_file($this->cacheFilePath)) {
             $this->existed = true;
             $this->info = $this->handle->getInfo($this->cacheFilePath);
-
         } else {
             // Get image information
             $this->info = $this->handle->getInfo();
 
             if(is_null($this->handle->front) && !$this->handle->createFront()) {
-                throw new CaptchaException('Failed to create image.');
+                throw new CaptchaException($this->lang()->get('Failed to create image.'));
             }
 
             // Create a directory
             $this->createFolder(dirname($this->cacheFilePath));
         }
 
-        $this->info['hash'] = $this->hash;
+        $this->info['token'] = $this->token;
         $this->info['angle'] = $this->degrees;
         $this->info['path'] = $this->cachePath;
         $this->info['cache'] = $this->cacheFilePath;
@@ -160,39 +195,53 @@ class Captcha
      * @param int|float|string $angle
      * @return array
      */
-    public function check(int|float|string $angle = null): bool
+    public function check(string $token, int|float|string $angle = null): bool
     {
-        if(empty($angle)) {
+        if(empty($token) || empty($angle)) {
             return false;
         }
 
-        $hash = $this->_session->get('captcha_rotate');
+        $payload = $this->drive()->get($token);
 
-        if(empty($hash)) {
+        if(empty($payload)) {
             return false;
         }
-        
-        $this->config = $this->getConfig();
 
-        $_angle = Crypt::decode($hash, $this->config['salt']);
+        if(!isset($payload['ttl']) || time() > $payload['ttl']) {
+            throw new CaptchaException($this->lang()->get('Verification timed out.'));
+        }
 
-        if(empty($_angle)) {
-            return false;
+        if(!isset($payload['ip']) || Request::ip() !== $payload['ip']) {
+            throw new CaptchaException($this->lang()->get('Invalid verification.'));
+        }
+
+        $ua = Request::header('User-Agent');
+        if(!isset($payload['ua']) || crc32($ua) !== $payload['ua']) {
+            throw new CaptchaException($this->lang()->get('Invalid verification.'));
+        }
+
+        if(!isset($payload['ds'])) {
+            throw new CaptchaException($this->lang()->get('Validation error.'));
         }
 
         $angle = (float) $angle;
+        $payload['ds'] = (int) $payload['ds'];
 
-        if($angle == $_angle) {
+        if($angle == $payload['ds']) {
             return true;
         }
 
-        if($angle > $_angle && $angle - $_angle < $this->config['sarea']) {
+        $earea = $this->config('earea') ?: 10;
+
+        if($angle > $payload['ds'] && $angle - $payload['ds'] < $earea) {
             return true;
         }
 
-        if($angle < $_angle && $_angle - $angle < $this->config['sarea']) {
+        if($angle < $payload['ds'] && $payload['ds'] - $angle < $earea) {
             return true;
         }
+
+        throw new CaptchaException($this->lang()->get('Invalid verification.'));
 
         return false;
     }
@@ -204,20 +253,20 @@ class Captcha
      * @param string $uploadPath
      * @return array
      */
-    public function img(string $str = '', string $uploadPath = null): array
+    public function output(string $str = '', string $uploadPath = null): array
     {
         if(empty($str)) {
             return [null, ''];
         }
 
         try {
-            $str = Crypt::decode($str);
+            $str = $this->encrypter()->decrypt($str);
         } catch (\Exception $e) {
             return [null, ''];
         }
 
         if(is_null($uploadPath)) {
-            throw new CaptchaException('Please set uploadPath parameter.');
+            throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
         }
 
         $filepath = $uploadPath . $str;
@@ -226,14 +275,14 @@ class Captcha
             return [null, ''];
         }
 
-        $format = strrchr($str, '.');
+        $mime = 'image/'. pathinfo($str, PATHINFO_EXTENSION);
 
         ob_start();
         @readfile($filepath);
         $image  = ob_get_contents();
         ob_end_clean();
 
-        return [$format, $image];
+        return [$mime, $image];
     }
 
     /**
@@ -244,9 +293,9 @@ class Captcha
     public function info(): array
     {
         return [
-            'hash' => $this->info['hash'],
+            'token' => $this->info['token'],
             // 'path' => $this->info['path'],
-            'str' => Crypt::encode($this->info['path']),
+            'str' => $this->encrypter()->encrypt($this->info['path']),
             'angle' => $this->info['angle'],
             // 'cache' => $this->info['cache'],
             'type' => $this->info['type'],
@@ -264,14 +313,22 @@ class Captcha
         // Get random angle, generate angle hash
         $this->degrees = rand(30, 270);
         // $this->degrees = 70;
-        $this->hash = Crypt::encode((string) $this->degrees, $this->config['salt'], 300);
         
-        $this->_session->set('captcha_rotate', $this->hash);
+        // $this->hash = Crypt::encode((string) $this->degrees, $this->config('salt'), 300);
+        
+        // $this->_session->set('captcha_rotate', $this->hash);
+        
+        // $this->createToken($this->degrees);
+
+        // dd($this->getToken($this->token));
+
+        // 设置token
+        $this->token = $this->drive->put($this->degrees);
 
         // dd(decrypt('eyJpdiI6ImdIbk9NK0VZUTB2TjZrdStnWnJsZHc9PSIsInZhbHVlIjoicHJOdGh0aFwvSXpOYW5IY3hvcFQ2M3c9PSIsIm1hYyI6IjU4MTE0YzlkMDQxYjNjMjQxZjYwMjA5YTI5NGQxODhhNWQ2NjA3NTQzOWViNGY5NzVkZDVkNGJjZjRhMzY3NGQifQ==', 'cfyun@isszz#rotateVerify'));
 
         if(is_null($this->uploadPath)) {
-            throw new CaptchaException('Please use the setUploadPath method to configure uploadPath parameters.');
+            throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
         }
 
         $this->cachePath = date('ym', time()) . '/' . md5(md5((string) $this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
@@ -282,17 +339,69 @@ class Captcha
     }
 
     /**
-     * Get configuration
+     * Error message
      *
-     * @return array
+     * @return string
      */
-    private function getConfig(): array
+    public function getMessage(): string
     {
-        return array_merge($this->config, $this->_config->get('rotateCaptcha'));
+        return $this->message ?: '';
     }
 
     /**
-     * Get an example of image processing
+     * Set language
+     *
+     * @param string|null $language
+     * @param string|null $file
+     * @return self
+     */
+    public function setLang(string $language = 'en', ?string $file = null): self
+    {
+        $this->lang($language, $file);
+
+        return $this;
+    }
+
+    /**
+     * Initialize language
+     *
+     * @param string|null $language
+     * @param string|null $file
+     * @return object
+     */
+    public function lang(string $language = 'en', ?string $file = null): object
+    {
+        if(!is_null($this->lang)) {
+            return $this->lang;
+        }
+
+        if(empty($file)) {
+           $file = __DIR__ . DIRECTORY_SEPARATOR .'config'. DIRECTORY_SEPARATOR .'lang.php';
+        }
+
+        return $this->lang = Lang::line($file, $language);
+    }
+
+    /**
+     * Get configuration
+     *
+     * @param string $name
+     * @param string $defaultValue
+     * @return array|string|null
+     */
+    public function config(string|null $name = null, string|null $defaultValue = null): mixed
+    {
+        $config = array_merge($this->config, $this->_config->get('rotateCaptcha'));
+
+        if(is_null($name)) {
+            return $config;
+        }
+
+        return array_get($config, $name, null);
+    }
+    
+    /**
+     * Initialize image processing handle
      *
      * @return object
      */
@@ -303,10 +412,65 @@ class Captcha
         }
 
         if($this->handleName === 'imagick') {
-            return $this->handle = new \isszz\captcha\rotate\handle\ImagickHandle($this->image, $this->config['imagick']);
+            return $this->handle = new \isszz\captcha\rotate\handle\ImagickHandle($this, $this->image, $this->config('imagick'));
         }
 
-        return $this->handle = new \isszz\captcha\rotate\handle\GdHandle($this->image, $this->config['gd']);
+        return $this->handle = new \isszz\captcha\rotate\handle\GdHandle($this, $this->image, $this->config('gd'));
+    }
+
+    /**
+     * Initialize storage drive
+     *
+     * @return object
+     */
+    private function drive(): object
+    {
+        if(!is_null($this->drive)) {
+            return $this->drive;
+        }
+
+        $class = $this->config('drive') ?? '';
+
+        if (!is_string($class) || !class_exists($class) || !is_subclass_of($class, Drive::class)) {
+            throw new CaptchaException($this->lang()->get('Captcha storage drive class: :class invalid.', ['class' => $class]));
+        }
+        
+        return $this->drive = new $class($this, $this->encrypter(), $this->config('expire'));
+    }
+
+    /**
+     * Initialize encrypter
+     *
+     * @return object
+     */
+    private function encrypter(): object
+    {
+        if(!is_null($this->encrypter)) {
+            return $this->encrypter;
+        }
+
+        return $this->encrypter = new Encrypter($this->config('salt'));
+    }
+
+    /**
+     * Get output mime
+     *
+     * @return string
+     */
+    public function getMime(): string
+    {
+        $outputType = $this->config('outputType');
+
+        switch ($outputType) {
+            case self::OUTPUT_PNG:
+                return 'image/png';
+            case self::OUTPUT_WEBP:
+                return 'image/webp';
+            case self::OUTPUT_JPEG:
+                return 'image/jpeg';
+            default:
+                throw new CaptchaException($this->lang()->get('Unsupported type: :outputType', ['outputType' => $outputType]));
+        }
     }
 
     /**
@@ -318,9 +482,9 @@ class Captcha
     private function createFolder(string $dirname): bool
     {
         if (!file_exists($dirname) && !is_dir($dirname) && !mkdir($dirname, 0777, true)) {
-            throw new CaptchaException('Directory creation failed.');
+            throw new CaptchaException($this->lang()->get('Directory creation failed.'));
         } else if (!is_writeable($dirname)) {
-            throw new CaptchaException('The directory does not have write permission.');
+            throw new CaptchaException($this->lang()->get('The directory does not have write permission.'));
         }
 
         @chmod($dirname, 0777);

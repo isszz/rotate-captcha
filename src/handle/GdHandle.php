@@ -4,18 +4,22 @@ declare (strict_types = 1);
 namespace isszz\captcha\rotate\handle;
 
 use isszz\captcha\rotate\Handle;
+use isszz\captcha\rotate\Captcha;
 use isszz\captcha\rotate\CaptchaException;
 
 class GdHandle extends Handle
 {
-    public function __construct(string $image, array $config = [])
+    public function __construct(Captcha $captcha, string $image, array $config = [])
     {
         if(!extension_loaded('gd')) {
-            throw new CaptchaException('Need to support GD extension.');
+            throw new CaptchaException($captcha->lang()->get('Need to support GD extension.'));
         }
 
+		$this->captcha = $captcha;
         $this->image = $image;
         $this->config = $config;
+        $this->outputMime = $this->captcha->getMime();
+        $this->outputType = $this->getExt();
 
         return $this;
     }
@@ -33,7 +37,7 @@ class GdHandle extends Handle
         } else {
             // Only take image information
             if (!is_file($filePath)) {
-                throw new CaptchaException('Image does not exist.');
+                throw new CaptchaException($this->captcha->lang()->get('Image does not exist.'));
             }
 
             $info = getimagesize($filePath);
@@ -58,14 +62,18 @@ class GdHandle extends Handle
 
         $mime = $this->info['mime'];
 
-        // Forced to jpg
-        if(empty($this->config['compress'])) {
-            $mime = 'image/jpeg';
-        }
+		if($this->outputMime != $mime) {
+            $mime = $this->outputMime;
+		}
 
         switch($mime) {
+            case 'image/jpg':
             case 'image/jpeg':
                 imagejpeg($this->back, $this->cacheFilePath, $this->config['quality'] ?: 80);
+                break;
+            case 'image/webp':
+                imagepalettetotruecolor($this->back);
+                imagewebp($this->back, $this->cacheFilePath, $this->config['quality'] ?: 80);
                 break;
             case 'image/png':
                 imagepng($this->back, $this->cacheFilePath);
@@ -145,22 +153,24 @@ class GdHandle extends Handle
         // Zoom
         $scale = $dst_w / $w;
         $target = imagecreatetruecolor($dst_w, $dst_h);
-        
-        if(!empty($this->config['compress']) || empty($this->config['bgcolor'])) {
-            $bgColor = imagecolorallocatealpha($target, 255, 255, 255, 127);
-            imagefill($target, 0, 0, $bgColor);
-            // Keep transparent
-            imagesavealpha($target, true);
-            // imagealphablending($target, false);
-        } else {
+
+        if(!empty($this->config['bgcolor'])) {
+            if($this->config['bgcolor'] == '#fff' || $this->config['bgcolor'] == 'white') {
+                $this->config['bgcolor'] == '#ffffff';
+            }
             // Set background color
             $_color = $this->hex2rgb($this->config['bgcolor'], false);
             if(!$_color || !is_array($_color)) {
                 $_color = [255, 255, 255];
             }
-
             $bgColor = imagecolorallocate($target, ...$_color);
             imagefill($target, 0, 0, $bgColor);
+        } else {
+            $bgColor = imagecolorallocatealpha($target, 255, 255, 255, 127);
+            imagefill($target, 0, 0, $bgColor);
+            // Keep transparent
+            imagesavealpha($target, true);
+            // imagealphablending($target, false);
         }
 
         $final_w = intval($w * $scale);
@@ -192,6 +202,9 @@ class GdHandle extends Handle
             case 'image/png':
                 $this->front = imagecreatefrompng($this->image);
                 break;
+            case 'image/webp':
+                $this->front = imagecreatefromwebp($this->image);
+                break;
             default:
                 return false;
         }
@@ -207,8 +220,8 @@ class GdHandle extends Handle
      */
     private function formatImageInfo(array $info = [])
     {
-        if (!in_array($info['mime'], ['image/jpeg', 'image/png'])) {
-            throw new CaptchaException('Please use jpeg or png images.');
+        if (!in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'])) {
+            throw new CaptchaException($this->captcha->lang()->get('Please use jpeg and png or webp images.'));
         }
 
         return [

@@ -80,7 +80,7 @@ abstract class Handle implements HandleInterface
 	}
 
 	/**
-	 * Get file extension
+	 * Get file output extension
 	 * 
 	 * @param string $filePath
 	 * @param bool $isIgnoreAfter
@@ -88,17 +88,45 @@ abstract class Handle implements HandleInterface
 	 */
 	public function getFileExt($filePath = null, $isIgnoreAfter = true)
 	{
-		$ext = strtolower(strrchr((is_null($filePath) ? $this->image : $filePath), '.'));
+		// $ext = strtolower(strrchr((is_null($filePath) ? $this->image : $filePath), '.'));
+		$ext = pathinfo((is_null($filePath) ? $this->image : $filePath), PATHINFO_EXTENSION);
 
+		// Return original image suffix
 		if($isIgnoreAfter) {
-			return $ext;
+			return '.'. $ext;
 		}
 
-		if(empty($this->config['compress']) && ($ext != '.jpg' || $ext != '.jepg')) {
-			$ext = '.jpg';
+		// Output extension
+		$ext = $this->getExt();
+
+		if($ext == 'webp') {
+			return '.'. $ext;
 		}
 
-		return $ext;
+		if(!empty($this->config['bgcolor']) && ($ext != 'jpg' || $ext != 'jepg')) {
+			$ext = 'jpg';
+		}
+		
+		return '.'. $ext;
+	}
+
+	/**
+	 * Get file output extension for mime
+	 * 
+	 * @return string
+	 */
+	public function getExt()
+	{
+        switch ($this->outputMime) {
+            case 'image/png':
+                return 'png';
+            case 'image/webp':
+                return 'webp';
+            case 'image/jpg':
+			case 'image/jpeg':
+                return 'jpg';
+        }
+		return 'webp';
 	}
 
 	/**

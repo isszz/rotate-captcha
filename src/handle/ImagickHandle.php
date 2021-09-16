@@ -8,18 +8,22 @@ use \ImagickDraw;
 use \ImagickPixel;
 
 use isszz\captcha\rotate\Handle;
+use isszz\captcha\rotate\Captcha;
 use isszz\captcha\rotate\CaptchaException;
 
 class ImagickHandle extends Handle
 {
-	public function __construct(string $image, array $config = [])
+	public function __construct(Captcha $captcha, string $image, array $config = [])
 	{
 		if(!extension_loaded('imagick')) {
-			throw new CaptchaException('Need to support Imagick extension.');
+			throw new CaptchaException($captcha->lang()->get('Need to support Imagick extension.'));
 		}
 
+		$this->captcha = $captcha;
 		$this->image = $image;
 		$this->config = $config;
+        $this->outputMime = $this->captcha->getMime();
+        $this->outputType = $this->getExt();
 
 		return $this;
 	}
@@ -43,7 +47,7 @@ class ImagickHandle extends Handle
 			$info['type'] = $this->getFileExt();
 		} else {
 			if (!is_file($filePath)) {
-				throw new CaptchaException('Image does not exist.');
+				throw new CaptchaException($this->captcha->lang()->get('Image does not exist.'));
 			}
 
 			$_image = new Imagick($filePath);
@@ -56,8 +60,8 @@ class ImagickHandle extends Handle
 			$_image->destroy();
 		}
 
-		if (!in_array($info['mime'], ['image/jpeg', 'image/png'])) {
-			throw new CaptchaException('Please use jpeg or png images.');
+		if (!in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'])) {
+			throw new CaptchaException($this->captcha->lang()->get('Please use jpeg and png or webp images.'));
 		}
 
 		return $this->info = $info;
@@ -144,41 +148,40 @@ class ImagickHandle extends Handle
 		$this->front->thumbnailImage($final_w, $final_h, true);
 		$this->front->cropimage($w, $h, 0, 0);
 
-		// Processing compression
-		if(empty($this->config['compress'])) {
-			if(empty($this->config['bgcolor'])) {
-				$this->config['bgcolor'] = 'white';
-			}
+		// Delete picture information
+		$this->front->stripImage();
 
-			// Convert to jpg
+		// Jpg default white background
+		if($this->outputMime == 'image/jpeg') {
+			$this->config['bgcolor'] = $this->config['bgcolor'] ?: 'white';
+		}
+
+		if(empty($this->config['bgcolor'])) {
+			$this->back = $this->front;
+		} else {
+			// Have a background
 			$this->back = new Imagick();
 			$this->back->newImage($final_w, $final_h, new ImagickPixel($this->config['bgcolor']));
-
 			$this->back->compositeImage($this->front, Imagick::COMPOSITE_OVER, 0, 0);
+		}
+		
+		// Conversion format
+		$this->back->setImageFormat($this->outputType);
 
-			// Compressed size, average 30kb, shortcomings cannot be transparent
-			$this->back->setImageFormat('jpg');
+		if($this->outputMime == 'image/webp' || $this->outputMime == 'image/jpeg') {
 			$this->back->setImageCompression(Imagick::COMPRESSION_JPEG);
+			// $this->back->setImageCompression(Imagick::COMPRESSION_WEBP);
 			$this->back->setImageCompressionQuality($this->config['quality'] ?: 80);
-
 		} else {
-			// Delete picture information
-			$this->front->stripImage();
+			// PNG can be compressed by more than 2 times, with an average of about 90kb, the disadvantage is that it loses too many pixels
+			// $this->back->setImageType(Imagick::IMGTYPE_PALETTEMATTE);
 
-			if($this->config['compress'] == 1) {
-				// PNG can be compressed by more than 2 times, with an average of about 90kb, the disadvantage is that it loses too many pixels
-				$this->front->setImageType(Imagick::IMGTYPE_PALETTEMATTE);
-			} else {
-				// Losslessly compress png, only a few K- -...
-				// $this->front->setImageFormat('png');
-				$this->front->setImageAlphaChannel(Imagick::COLOR_BLACK);
-				$this->front->setImageCompression(Imagick::COMPRESSION_ZIP);
-				// $this->front->setImageCompressionQuality(9);
-				$this->front->setOption('png:compression-level', 9);
-
-			}
-
-			$this->back = $this->front;
+			// Losslessly compress png, only a few K- -...
+			// $this->back->setImageFormat('png');
+			$this->back->setImageAlphaChannel(Imagick::COLOR_BLACK);
+			$this->back->setImageCompression(Imagick::COMPRESSION_ZIP);
+			// $this->back->setImageCompressionQuality(9);
+			$this->back->setOption('png:compression-level', 9);
 		}
 
 		$this->front->clear();
