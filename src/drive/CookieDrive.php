@@ -5,10 +5,8 @@ namespace isszz\captcha\rotate\drive;
 
 use isszz\captcha\rotate\Drive;
 use isszz\captcha\rotate\support\Str;
-use isszz\captcha\rotate\support\request\Request;
 
 use think\facade\Cookie;
-use isszz\captcha\CaptchaException;
 
 class CookieDrive extends Drive
 {

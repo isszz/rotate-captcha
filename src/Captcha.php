@@ -3,7 +3,6 @@ declare (strict_types = 1);
 
 namespace isszz\captcha\rotate;
 
-// use isszz\captcha\rotate\CaptchaException;
 use think\Config;
 // use think\Session;
 

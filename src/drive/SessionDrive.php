@@ -7,7 +7,6 @@ use isszz\captcha\rotate\Drive;
 use isszz\captcha\rotate\support\Str;
 
 use think\facade\Session;
-use isszz\captcha\CaptchaException;
 
 class SessionDrive extends Drive
 {
