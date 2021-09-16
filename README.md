@@ -2,11 +2,12 @@
 旋转图片角度验证码, 包含php生成验证图片(gd 或者 imagick)
 
 ## 更新
-> 2021-09-10  新增原生JS版本, 优化部分代码
-> 2021-09-16  增加存储驱动功能可使用session,cache,cookie驱动, 验证方式改为token交换
-> 2021-09-16  验证方式改为token交换
-> 2021-09-16  加密方式更改为AES
-> 2021-09-17  新增输出格式设置，可设置webp，生成图片更小，清晰度更高且支持透明底色
+- 2021-09-10  新增原生JS版本, 优化部分代码
+- 2021-09-16  更新
+  - 增加存储驱动功能可使用session,cache,cookie驱动, 验证方式改为token交换
+  - 验证方式改为token交换
+  - 加密方式更改为AES
+- 2021-09-17  新增输出格式设置，可设置webp，生成图片更小，清晰度更高且支持透明底色
 
 ## 演示图
 ![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/demo.gif)
