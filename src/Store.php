@@ -36,16 +36,6 @@ abstract class Store implements StoreInterface
         $this->ttl = $ttl;
     }
 
-    /**
-     * 获取消息
-     * 
-     * @return string|null
-     */
-    public function getMessage(): ?string
-    {
-        return $this->message;
-    }
-
     public function buildPayload(?int $degrees): ?string
     {
         $ua = Request::header('User-Agent');
