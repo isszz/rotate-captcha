@@ -10,6 +10,8 @@
   - 加密方式更改为AES
 - **2021-09-17 新增**
   - 新增输出格式设置，可设置webp，生成图片更小，清晰度更高且支持透明底色
+- **2021-09-19 更新**
+  - 移除thinkphp6的依赖，现在可以在其他框架或者tp5，增加少量代码也可以使用啦
 
 ## 演示图
 ![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/demo.gif)
@@ -266,6 +268,85 @@ header('Content-type: '. $mime);
 header('Content-Length: '. strlen($image));
 echo $image;
 ```
+## 关于配置驱动和自定义存储驱动说明
+```php
+
+use isszz\captcha\rotate\Store;
+use isszz\captcha\rotate\Config;
+use isszz\captcha\rotate\support\Str;
+
+// 配置获取驱动，需要基于\isszz\captcha\rotate\Config实现如下方法:
+class CaptchaConfig extends Config
+{
+	public function get(string $name, string $defaultValue = null): mixed
+	{
+        // 获取配置
+		return Config::get($name, $defaultValue);
+	}
+
+	public function put(string $name, array|string $data): bool
+	{
+        // 存储配置 - 暂时无用
+		return Config::put($name, $data);
+	}
+
+	public function forget(string $name): bool
+	{
+        // 删除配置 - 暂时无用
+		return Config::forget($name);
+	}
+}
+
+// 自定义存储驱动，需要基于\isszz\captcha\rotate\Store实现如下方法:
+// 更多方式参考\isszz\captcha\rotate\store\文件夹内示例，只要能存储token怎么存自由发挥哈
+// 这里大家只需要实现, 验证token是否存在(当然此出可以省略，获取后判断也是一样), 获取token, 和删除token, 存储token
+class CaptchaSessionStore extends Store
+{
+	public function get(string $token): array
+	{
+        // 检测token是否存在
+		if(!Session::has($token)) {
+			return [];
+		}
+        
+        // 获取token内容
+		$payload = Session::get($token);
+
+		if(empty($payload)) {
+			return [];
+		}
+
+        // 解析token内容
+		$payload = $this->encrypter->decrypt($payload);
+
+		if(empty($payload)) {
+			return [];
+		}
+
+        // 删除token
+		Session::forget($token);
+
+        // 返回解析后的token
+		return json_decode($payload, true);
+	}
+
+	public function put(?int $degrees): string
+	{
+		$token = \isszz\captcha\rotate\support\Str::random(32, 'alnum');
+
+		$payload = $this->buildPayload($degrees);
+
+        // 存储token, 并设置token过期时间ttl
+		Session::put($token, $payload, $this->ttl);
+
+		return $token;
+	}
+}
+
+
+```
+
+
 ## 前端配置项
 ```javascript
 options = {
