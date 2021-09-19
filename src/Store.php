@@ -15,19 +15,14 @@ abstract class Store implements StoreInterface
     protected $captcha;
 
     /**
-     * @var string
+     * @var Encrypter
      */
-    protected $secureKey;
+    protected $encrypter;
     
     /**
      * @var int
      */
     protected $ttl;
-
-    /**
-     * @var string|null
-     */
-    protected $message = null;
 
     public function __construct(Captcha $captcha, Encrypter $encrypter, int $ttl)
     {
