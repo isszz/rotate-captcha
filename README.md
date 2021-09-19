@@ -11,7 +11,7 @@
 - **2021-09-17 新增**
   - 新增输出格式设置，可设置webp，生成图片更小，清晰度更高且支持透明底色
 - **2021-09-19 更新**
-  - 移除thinkphp6的依赖，现在可以在其他框架或者tp5，增加少量代码也可以使用啦
+  - 移除thinkphp6的依赖，现在可以在其他框架或者tp5，增加少量代码使用啦
 
 ## 演示图
 ![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/demo.gif)
