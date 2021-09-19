@@ -120,7 +120,7 @@ class Captcha
 		if (!is_file($this->image)) {
 			throw new CaptchaException($this->lang()->get('Material image does not exist.'));
 		}
-		
+
 		// Create image handle class
 		$this->handle();
 		// Initialize store
@@ -154,7 +154,7 @@ class Captcha
 
 	/**
 	 * Generate verification pictures and obtain relevant information
-	 * 
+	 *
 	 * @return array
 	 */
 	public function get($size = 350): array
@@ -248,7 +248,7 @@ class Captcha
 		if(empty($str)) {
 			return [null, ''];
 		}
-		
+
 		try {
 			$str = $this->encrypter()->decrypt($str);
 		} catch (\Exception $e) {
@@ -277,7 +277,7 @@ class Captcha
 
 	/**
 	 * Get information about the generated image
-	 * 
+	 *
 	 * @return array
 	 */
 	public function info(): array
@@ -400,7 +400,7 @@ class Captcha
 
 		return $this->lang = Lang::line($file, $language);
 	}
-	
+
 	/**
 	 * Initialize image processing handle
 	 *
@@ -497,7 +497,7 @@ class Captcha
 
 	/**
 	 * Get the captcha image file content|For testing
-	 * 
+	 *
 	 * @return string
 	 */
 	public function __toString(): string
@@ -509,7 +509,7 @@ class Captcha
 			$this->handle->create();
 			$this->size = $this->handle->size;
 		}
-		
+
 		ob_start();
 		@readfile($this->info['cache']);
 		$content  = ob_get_contents();
