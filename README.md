@@ -13,6 +13,11 @@
 - **2021-09-19 更新**
   - 移除thinkphp6的依赖，现在可以在其他框架或者tp5，增加少量代码使用啦
 
+## 安装
+```
+composer require isszz/rotate-captcha -vvv
+```
+
 ## 演示图
 ![image](https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/demo.gif)
 
@@ -29,11 +34,6 @@ Imagick方式只做了基本的测试
 依赖jquery, ~~暂时使用了一个model插件, 下次更新把这个model改成接口, 可对接自己的model~~
 
 vue, react版本有能力的朋友参考jquery版自己实现下哦
-
-## 安装
-```
-composer require isszz/rotate-captcha -vvv
-```
 
 ## 配置说明
 ```php
