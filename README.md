@@ -253,13 +253,13 @@ use isszz\captcha\rotate\facade\Captcha;
 $id = $_GET['id'] ?? null;
 
 if(empty($id)) {
-	echo '';
+	exit('');
 }
 
 [$mime, $image] = Captcha::img($id, upload_path('captcha'));
 
 if(empty($image)) {
-	echo '';
+	exit('');
 }
 
 header('Cache-Control: private, no-cache, no-store, must-revalidate');
