@@ -115,6 +115,7 @@ class Captcha
         }
 
         // 生成验证码需要的图片
+        // setLang设置语言
         $data = RotateCaptcha::setLang('zh-cn')->create(
             $image,
             upload_path('captcha') // 用于存储生成图片的目录
@@ -173,15 +174,86 @@ class Captcha
 }
 
 ```
-##### 没有使用框架输出图片/未经测试
+## 非thinkphp6框架, 可以参考如下
 ```php
+<?php
+use isszz\captcha\rotate\facade\Captcha;
+
+// 这里用到的Config用自己框架的配置类
+class CaptchaConfig extends \isszz\captcha\rotate\Config
+{
+	public function get(string $name, string $defaultValue = null): mixed
+	{
+		return \Config::get($name, $defaultValue);
+	}
+
+	public function put(string $name, array|string $data): bool
+	{
+		return \Config::put($name, $data);
+	}
+
+	public function forget(string $name): bool
+	{
+		return \Config::forget($name);
+	}
+}
+
+$list = [
+	'1.png',
+	'2.png',
+	'1.jpg',
+	'2.jpg',
+	'3.jpg',
+	'4.jpg',
+	'5.jpg',
+	'6.jpg',
+	'7.jpg',
+	'8.jpg',
+	'9.jpg',
+	'10.jpg',
+	'11.jpg',
+	'12.jpg',
+	'13.jpg',
+];
+
+$key = array_rand($list, 1);
+
+if(isset($list[$key])) {
+	$image = $list[$key];
+}
+
+$data = Captcha::configDrive(\CaptchaConfig::class)->setLang('zh-cn')->create(path('upload') . 'rvimg' . DS . $image, path('upload') . 'captcha' . DS)->get(260);
+
+header('Content-Type:application/json; charset=utf-8');
+
+if($data) {
+    echo json_encode([
+        'code' => 0,
+        'msg' => 'success',
+        'data' => ['token' => $data['token'], 'str' => $data['str']],
+    ]);
+}
+ 
+echo json_encode([
+    'code' => 1,
+    'msg' => 'error',
+    'data' => null,
+]);
+
+```
+### 非thinkphp6框架，输出图片
+```php
+<?php
+
+use isszz\captcha\rotate\facade\Captcha;
+
 $id = $_GET['id'] ?? null;
 
 if(empty($id)) {
     echo '';
 }
 
-[$mime, $image] = RotateCaptcha::img($id, upload_path('captcha'));
+[$mime, $image] = Captcha::img($id, upload_path('captcha'));
 
 if(empty($image)) {
     echo '';
