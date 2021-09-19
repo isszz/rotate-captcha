@@ -11,6 +11,7 @@ return [
         'Validation error.' => '验证错误。',
         'Directory creation failed.' => '目录创建失败。',
         'The directory does not have write permission.' => '该目录没有写权限。',
+        'Config driver :driver does not exist.' => 'Config驱动 :driver 不存在。',
         // GD
         'Need to support GD extension.' => '需要支持GD扩展。',
         // Imagick

@@ -3,11 +3,11 @@ declare (strict_types = 1);
 
 namespace isszz\captcha\rotate;
 
-use isszz\captcha\rotate\interface\DriveInterface;
+use isszz\captcha\rotate\interface\StoreInterface;
 use isszz\captcha\rotate\support\request\Request;
 use isszz\captcha\rotate\support\encrypter\Encrypter;
 
-abstract class Drive implements DriveInterface
+abstract class Store implements StoreInterface
 {
     /**
      * @var Captcha

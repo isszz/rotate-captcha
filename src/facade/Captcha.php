@@ -2,7 +2,8 @@
 
 namespace isszz\captcha\rotate\facade;
 
-use think\Facade;
+// use think\Facade;
+use isszz\captcha\rotate\Facade;
 
 class Captcha extends Facade
 {

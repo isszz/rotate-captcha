@@ -1,14 +1,14 @@
 <?php
 declare (strict_types = 1);
 
-namespace isszz\captcha\rotate\drive;
+namespace isszz\captcha\rotate\store;
 
-use isszz\captcha\rotate\Drive;
+use isszz\captcha\rotate\Store;
 use isszz\captcha\rotate\support\Str;
 
 use think\facade\Session;
 
-class SessionDrive extends Drive
+class SessionStore extends Store
 {
     public function get(string $token): array
     {

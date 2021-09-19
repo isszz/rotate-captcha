@@ -95,7 +95,7 @@ class Lang
         
 		if (strpos($value, ':')) {
 			foreach ($vars as $key => $v) {
-				$value = str_replace(':' . $key, $v, $value);
+				$value = str_replace(':' . $key, (string) $v, $value);
 			}
 		}
 

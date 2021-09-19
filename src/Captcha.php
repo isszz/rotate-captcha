@@ -3,9 +3,6 @@ declare (strict_types = 1);
 
 namespace isszz\captcha\rotate;
 
-use think\Config;
-// use think\Session;
-
 use isszz\captcha\rotate\support\request\Request;
 use isszz\captcha\rotate\support\encrypter\Encrypter;
 
@@ -27,9 +24,9 @@ class Captcha
     private array $config = [];
 
     /**
-     * message
+     * Config drive class
      */
-    private string $message = '';
+    private ?object $configDrive = null;
 
     /**
      * The token is the generated verification information
@@ -57,9 +54,9 @@ class Captcha
     private ?object $handle = null;
 
     /**
-     * drive
+     * Store drive
      */
-    private ?object $drive = null;
+    private ?object $store = null;
 
     /**
      * encrypter
@@ -86,11 +83,8 @@ class Captcha
     public const OUTPUT_JPEG = 'jpg';
     public const OUTPUT_WEBP = 'webp';
 
-    public function __construct(Config $config)
+    public function __construct()
     {
-        $this->_config = $config;
-        // $this->_session = $session;
-
         $this->handleName = 'gd';
 
         if(extension_loaded('imagemagick')) {
@@ -127,13 +121,10 @@ class Captcha
             throw new CaptchaException($this->lang()->get('Material image does not exist.'));
         }
         
-        // Initialize encrypter
-        // $this->encrypter();
-        // $this->encrypter = new Encrypter($this->config('salt'));
-
         // Create image handle class
         $this->handle();
-        $this->drive();
+        // Initialize store
+        $this->store();
         // Build the necessary parameters
         $this->buildBase();
 
@@ -200,7 +191,7 @@ class Captcha
             return false;
         }
 
-        $payload = $this->drive()->get($token);
+        $payload = $this->store()->get($token);
 
         if(empty($payload)) {
             return false;
@@ -257,7 +248,7 @@ class Captcha
         if(empty($str)) {
             return [null, ''];
         }
-
+        
         try {
             $str = $this->encrypter()->decrypt($str);
         } catch (\Exception $e) {
@@ -295,7 +286,7 @@ class Captcha
             'token' => $this->info['token'],
             // 'path' => $this->info['path'],
             'str' => $this->encrypter()->encrypt($this->info['path']),
-            'angle' => $this->info['angle'],
+            'angle' => $this->info['angle'], // Please do not display it
             // 'cache' => $this->info['cache'],
             'type' => $this->info['type'],
             'size' => $this->size,
@@ -312,19 +303,9 @@ class Captcha
         // Get random angle, generate angle hash
         $this->degrees = rand(30, 270);
         // $this->degrees = 70;
-        
-        // $this->hash = Crypt::encode((string) $this->degrees, $this->config('salt'), 300);
-        
-        // $this->_session->set('captcha_rotate', $this->hash);
-        
-        // $this->createToken($this->degrees);
 
-        // dd($this->getToken($this->token));
-
-        // 设置token
-        $this->token = $this->drive->put($this->degrees);
-
-        // dd(decrypt('eyJpdiI6ImdIbk9NK0VZUTB2TjZrdStnWnJsZHc9PSIsInZhbHVlIjoicHJOdGh0aFwvSXpOYW5IY3hvcFQ2M3c9PSIsIm1hYyI6IjU4MTE0YzlkMDQxYjNjMjQxZjYwMjA5YTI5NGQxODhhNWQ2NjA3NTQzOWViNGY5NzVkZDVkNGJjZjRhMzY3NGQifQ==', 'cfyun@isszz#rotateVerify'));
+        // Set token
+        $this->token = $this->store()->put($this->degrees);
 
         if(is_null($this->uploadPath)) {
             throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
@@ -338,13 +319,52 @@ class Captcha
     }
 
     /**
-     * Error message
+     * Set config drive
      *
-     * @return string
+     * @param string $config
+     * @return self
      */
-    public function getMessage(): string
+    public function configDrive(string $config): self
     {
-        return $this->message ?: '';
+        // dd($config, !is_string($config), !class_exists($config), !is_subclass_of($config, Config::class));
+        if (!is_string($config) || !class_exists($config) || !is_subclass_of($config, Config::class)) {
+            throw new CaptchaException($this->lang()->get('Config driver :driver does not exist.', ['driver' => $config]));
+        }
+
+        $this->configDrive = new $config;
+
+        return $this;
+    }
+
+    /**
+     * Get configuration
+     *
+     * @param string $name
+     * @param string $defaultValue
+     * @return array|string|null
+     */
+    public function config(string|null $name = null, string|null $defaultValue = null): mixed
+    {
+        if (!is_object($this->configDrive) && !is_subclass_of($this->configDrive, Config::class)) {
+
+            if(!class_exists(\think\App::class) || strpos(\think\App::VERSION, '6.0') === false) {
+                throw new CaptchaException($this->lang()->get('Config driver :driver does not exist.', [
+                    'driver' => is_object($this->configDrive) ? get_class($this->configDrive) : $this->configDrive
+                ]));
+            }
+
+            // Default config drive is thinkphp6.0.x
+            $this->configDrive = new \isszz\captcha\rotate\config\Think();
+        }
+
+        $config = array_merge($this->config, $this->configDrive->get('rotateCaptcha'));
+
+
+        if(is_null($name)) {
+            return $config;
+        }
+
+        return array_get($config, $name, null);
     }
 
     /**
@@ -375,28 +395,10 @@ class Captcha
         }
 
         if(empty($file)) {
-           $file = __DIR__ . DIRECTORY_SEPARATOR .'config'. DIRECTORY_SEPARATOR .'lang.php';
+           $file = __DIR__ . DIRECTORY_SEPARATOR .'lang'. DIRECTORY_SEPARATOR .'lang.php';
         }
 
         return $this->lang = Lang::line($file, $language);
-    }
-
-    /**
-     * Get configuration
-     *
-     * @param string $name
-     * @param string $defaultValue
-     * @return array|string|null
-     */
-    public function config(string|null $name = null, string|null $defaultValue = null): mixed
-    {
-        $config = array_merge($this->config, $this->_config->get('rotateCaptcha'));
-
-        if(is_null($name)) {
-            return $config;
-        }
-
-        return array_get($config, $name, null);
     }
     
     /**
@@ -422,19 +424,19 @@ class Captcha
      *
      * @return object
      */
-    private function drive(): object
+    private function store(): object
     {
-        if(!is_null($this->drive)) {
-            return $this->drive;
+        if(!is_null($this->store)) {
+            return $this->store;
         }
 
-        $class = $this->config('drive') ?? '';
+        $class = $this->config('store') ?? '';
 
-        if (!is_string($class) || !class_exists($class) || !is_subclass_of($class, Drive::class)) {
+        if (!is_string($class) || !class_exists($class) || !is_subclass_of($class, Store::class)) {
             throw new CaptchaException($this->lang()->get('Captcha storage drive class: :class invalid.', ['class' => $class]));
         }
-        
-        return $this->drive = new $class($this, $this->encrypter(), $this->config('expire'));
+
+        return $this->store = new $class($this, $this->encrypter(), $this->config('expire'));
     }
 
     /**

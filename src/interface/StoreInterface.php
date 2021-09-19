@@ -2,7 +2,7 @@
 
 namespace isszz\captcha\rotate\interface;
 
-interface DriveInterface
+interface StoreInterface
 {
     public function get(string $token): array;
     public function put(?int $degrees): string;

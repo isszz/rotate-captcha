@@ -1,8 +1,8 @@
 <?php
 
-// use isszz\captcha\rotate\drive\CacheDrive;
-// use isszz\captcha\rotate\drive\CookieDrive;
-use isszz\captcha\rotate\drive\SessionDrive;
+// use isszz\captcha\rotate\store\CacheStore;
+// use isszz\captcha\rotate\store\CookieStore;
+use isszz\captcha\rotate\store\SessionStore;
 
 return [
     'size' => 350, // 生成图片尺寸
@@ -19,5 +19,5 @@ return [
         'quality' => 80,
         'bgcolor' => '', // 底色, white
     ],
-    'drive' => SessionDrive::class,
+    'store' => SessionStore::class,
 ];
