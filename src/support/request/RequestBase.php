@@ -62,12 +62,25 @@ class RequestBase
             return getallheaders() ?: [];
         }
 
+        if (function_exists('apache_request_headers')) {
+            return apache_request_headers();
+        }
+
         $headers = [];
         foreach ($this->getServer() as $name => $value) {
             if (substr($name, 0, 5) == 'HTTP_') {
                 $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
             }
         }
+
+        if (($contentType = $this->getServer('CONTENT_TYPE')) && !empty($contentType)) {
+            $headers['content-type'] = $contentType;
+        }
+
+        if (($contentLength = $this->getServer('CONTENT_LENGTH')) && !empty($contentLength)) {
+            $headers['content-length'] = $contentLength;
+        }
+
         return $headers;
     }
 
