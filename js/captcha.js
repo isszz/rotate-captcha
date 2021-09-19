@@ -50,6 +50,7 @@
             _this.options.size.control = parseInt(_this.options.width - 30);
             _this.options.size.imgMargin = parseInt(_this.options.width / 10);
             _this.element = element;
+            _this.token = '';
 
             // load css
             _this.insertCss();
@@ -87,12 +88,13 @@
             
             _this.runtime.loaded = !1;
             _this.$captchaImgWrap.classList.add('captcha-loading');
-            
-            $.getJSON(_this.options.url.create).done(function(res) {
+
+            _this.getJSON(_this.options.url.create, null, function(res, xhr) {
                 if(res.code === 0) {
-                    
+                    let token = xhr.getResponseHeader('X-CaptchaToken');
+                    _this.token = token || res.data.token | ''; 
                     _this.$captchaImg = _this.$captchaImgWrap.querySelectorAll('img')[0];
-                    _this.$captchaImg.setAttribute('src', _this.options.url.img + '?id=' + res.data);
+                    _this.$captchaImg.setAttribute('src', _this.options.url.img + '?id=' + res.data.str);
                     _this.$captchaImg.style.cssText = 'transform: rotate(0deg);';
 
                     _this.$captchaImg.onload = function () {
@@ -240,8 +242,7 @@
         // 验证
         check() {
             const _this = this;
-
-            $.getJSON(_this.options.url.check, {angle: _this.runtime.deg}).done(function(res) {
+            _this.getJSON(_this.options.url.check, {token: _this.token, angle: _this.runtime.deg}, function(res) {
                 if(res.code === 0) {
                     _this.runtime.state = !0;
                     _this.$coordinate.style.display = 'none';
@@ -278,6 +279,39 @@
                     _this.refresh();
                 }, 1000);
             });
+        }
+        // ajax请求
+        getJSON(url, data, callback) {
+            const _this = this;
+            let params = '';
+            if(data && typeof data == 'object') {
+                params = Object.keys(data).map(function(key) {
+                    return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+                }).join('&');
+
+                url = url + ((url.indexOf('?') == -1 ? '?' : '&') + params);
+            }
+
+            let xhr, formData = null;
+            xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+
+            xhr.open('GET', url);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (xhr.status != 200) {
+                    return;
+                }
+
+                let res = JSON.parse(xhr.responseText) || null;
+                if (!res) {
+                    return;
+                }
+
+                callback(res, xhr);
+            };
+
+            xhr.send(formData);
         }
 
         move(x) {
