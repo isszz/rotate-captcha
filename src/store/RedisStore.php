@@ -4,10 +4,9 @@ declare (strict_types = 1);
 namespace isszz\captcha\rotate\store;
 
 use isszz\captcha\rotate\Store;
+use isszz\captcha\rotate\support\Redis;
 
-use think\facade\Cookie;
-
-class CookieStore extends Store
+class RedisStore extends Store
 {
 	/**
 	 * Get token
@@ -17,11 +16,13 @@ class CookieStore extends Store
 	 */
 	public function get(string $token): array
 	{
-		if(!Cookie::has(self::TOKEN_PRE . $token)) {
+        $redis = Redis::connection($this->captcha->config('redis'));
+
+		if(!$redis->has(self::TOKEN_PRE . $token)) {
 			return [];
 		}
 
-		$payload = Cookie::get(self::TOKEN_PRE . $token);
+		$payload = $redis->get(self::TOKEN_PRE . $token);
 
 		if(empty($payload)) {
 			return [];
@@ -33,7 +34,7 @@ class CookieStore extends Store
 			return [];
 		}
 
-		Cookie::delete(self::TOKEN_PRE . $token);
+		$redis->forget(self::TOKEN_PRE . $token);
 
 		return json_decode($payload, true);
 	}
@@ -48,7 +49,8 @@ class CookieStore extends Store
 	{
 		[$token, $payload] = $this->buildPayload($degrees);
 
-		Cookie::set(self::TOKEN_PRE . $token, $payload, $this->ttl);
+        $redis = Redis::connection($this->captcha->config('redis'));
+		$redis->put(self::TOKEN_PRE . $token, $payload, $this->ttl);
 
 		return $token;
 	}

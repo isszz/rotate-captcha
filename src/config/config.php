@@ -19,5 +19,15 @@ return [
         'quality' => 80,
         'bgcolor' => '', // 底色, white
     ],
+    'redis' => [
+		'host'       => '127.0.0.1',
+		'port'       => 6379,
+		'password'   => '',
+		'select'     => 0,
+		'timeout'    => 0,
+		'expire'     => 0,
+		'persistent' => false,
+		'prefix'     => 'captcha_',
+	],
     'store' => SessionStore::class,
 ];

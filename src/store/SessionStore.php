@@ -18,11 +18,11 @@ class SessionStore extends Store
 	 */
 	public function get(string $token): array
 	{
-		if(!Session::has($token)) {
+		if(!Session::has(self::TOKEN_PRE . $token)) {
 			return [];
 		}
 
-		$payload = Session::get($token);
+		$payload = Session::get(self::TOKEN_PRE . $token);
 
 		if(empty($payload)) {
 			return [];
@@ -34,7 +34,7 @@ class SessionStore extends Store
 			return [];
 		}
 
-		Session::delete($token);
+		Session::delete(self::TOKEN_PRE . $token);
 
 		return json_decode($payload, true);
 	}
@@ -49,7 +49,7 @@ class SessionStore extends Store
 	{
 		[$token, $payload] = $this->buildPayload($degrees);
 
-		Session::set($token, $payload, $this->ttl);
+		Session::set(self::TOKEN_PRE . $token, $payload, $this->ttl);
 
 		return $token;
 	}

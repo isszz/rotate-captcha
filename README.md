@@ -12,6 +12,9 @@
   - 新增输出格式设置，可设置webp，生成图片更小，清晰度更高且支持透明底色
 - **2021-09-19 更新**
   - 移除thinkphp6的依赖，可在其他框架增加少量代码使用啦
+- **2021-09-20 更新**
+  - token存储增加了前缀
+  - 新增Redis存储驱动，不依赖框架，支持redis即可
 
 ## 安装
 ```
@@ -39,11 +42,6 @@ vue, react版本有能力的朋友参考jquery版自己实现下哦
 ```php
 <?php
 
-// token存储驱动，默认为thinkphp6，需要其他的可以参考下面实现
-// use isszz\captcha\rotate\store\CacheStore;
-// use isszz\captcha\rotate\store\CookieStore;
-use isszz\captcha\rotate\store\SessionStore;
-
 return [
 	'size' => 350, // 生成图片尺寸
 	'expire' => 300, // 生成验证有效期
@@ -59,7 +57,11 @@ return [
 		'quality' => 80,
 		'bgcolor' => '', // 底色, white
 	],
-	'store' => SessionStore::class, // token存储驱动
+	// token存储驱动，默认为thinkphp6，需要其他的可以参考下面实现
+	// 'store' => isszz\captcha\rotate\store\CacheStore::class, // cache token存储驱动，基于thinkphp6
+	// 'store' => isszz\captcha\rotate\store\CookieStore::class, // cookie token存储驱动，基于thinkphp6
+	// 'store' => isszz\captcha\rotate\store\SessionStore::class, // session token存储驱动，基于thinkphp6
+	'store' => isszz\captcha\rotate\store\RedisStore::class, // redis token存储驱动，需支持redis，不依赖框架
 ];
 
 ```

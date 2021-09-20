@@ -16,11 +16,11 @@ class CacheStore extends Store
 	 */
 	public function get(string $token): array
 	{
-		if(!Cache::has($token)) {
+		if(!Cache::has(self::TOKEN_PRE . $token)) {
 			return [];
 		}
 
-		$payload = Cache::get($token);
+		$payload = Cache::get(self::TOKEN_PRE . $token);
 
 		if(empty($payload)) {
 			return [];
@@ -32,7 +32,7 @@ class CacheStore extends Store
 			return [];
 		}
 
-		Cache::delete($token);
+		Cache::delete(self::TOKEN_PRE . $token);
 
 		return json_decode($payload, true);
 	}
@@ -47,7 +47,7 @@ class CacheStore extends Store
 	{
 		[$token, $payload] = $this->buildPayload($degrees);
 
-		Cache::set($token, $payload, $this->ttl);
+		Cache::set(self::TOKEN_PRE . $token, $payload, $this->ttl);
 
 		return $token;
 	}

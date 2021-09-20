@@ -25,6 +25,8 @@ abstract class Store implements StoreInterface
      */
     protected $ttl;
 
+	public const TOKEN_PRE = 'rotate_captcha_';
+
     public function __construct(Captcha $captcha, Encrypter $encrypter, int $ttl)
     {
         $this->captcha = $captcha;
