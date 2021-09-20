@@ -10,36 +10,47 @@ use think\facade\Session;
 
 class SessionStore extends Store
 {
-    public function get(string $token): array
-    {
-        if(!Session::has($token)) {
-            return [];
-        }
+	/**
+	 * Get token
+	 *
+	 * @param string $token
+	 * @return string
+	 */
+	public function get(string $token): array
+	{
+		if(!Session::has($token)) {
+			return [];
+		}
 
-        $payload = Session::get($token);
+		$payload = Session::get($token);
 
-        if(empty($payload)) {
-            return [];
-        }
+		if(empty($payload)) {
+			return [];
+		}
 
-        $payload = $this->encrypter->decrypt($payload);
+		$payload = $this->encrypter->decrypt($payload);
 
-        if(empty($payload)) {
-            return [];
-        }
+		if(empty($payload)) {
+			return [];
+		}
 
-        Session::delete($token);
-        return json_decode($payload, true);
-    }
-    
-    public function put(?int $degrees): string
-    {
-        $token = Str::random(32, 'alnum');
+		Session::delete($token);
 
-        $payload = $this->buildPayload($degrees);
+		return json_decode($payload, true);
+	}
 
-        Session::set($token, $payload, $this->ttl);
+	/**
+	 * Storage token
+	 *
+	 * @param int|float|string $degrees
+	 * @return string
+	 */
+	public function put(?int $degrees): string
+	{
+		[$token, $payload] = $this->buildPayload($degrees);
 
-        return $token;
-    }
+		Session::set($token, $payload, $this->ttl);
+
+		return $token;
+	}
 }

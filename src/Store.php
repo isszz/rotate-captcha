@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace isszz\captcha\rotate;
 
 use isszz\captcha\rotate\interface\StoreInterface;
+use isszz\captcha\rotate\support\Str;
 use isszz\captcha\rotate\support\request\Request;
 use isszz\captcha\rotate\support\encrypter\Encrypter;
 
@@ -31,7 +32,7 @@ abstract class Store implements StoreInterface
         $this->ttl = $ttl;
     }
 
-    public function buildPayload(?int $degrees): ?string
+    public function buildPayload(?int $degrees): array
     {
         $ua = Request::header('User-Agent');
 
@@ -42,7 +43,9 @@ abstract class Store implements StoreInterface
             'ttl' => time() + $this->ttl,
         ], JSON_UNESCAPED_UNICODE);
 
-        return $this->encrypter->encrypt($payload);
+        $token = Str::random(32, 'alnum');
+
+        return [$token, $this->encrypter->encrypt($payload)];
     }
 
     abstract public function get(string $token): array;

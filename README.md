@@ -39,6 +39,7 @@ vue, react版本有能力的朋友参考jquery版自己实现下哦
 ```php
 <?php
 
+// token存储驱动，默认为thinkphp6，需要其他的可以参考下面实现
 // use isszz\captcha\rotate\store\CacheStore;
 // use isszz\captcha\rotate\store\CookieStore;
 use isszz\captcha\rotate\store\SessionStore;
@@ -58,7 +59,7 @@ return [
 		'quality' => 80,
 		'bgcolor' => '', // 底色, white
 	],
-	'store' => SessionStore::class,
+	'store' => SessionStore::class, // token存储驱动
 ];
 
 ```
@@ -77,13 +78,8 @@ use isszz\captcha\rotate\facade\Captcha as RotateCaptcha;
 use think\Response;
 use think\Request;
 
-// 这个用自己的哦
-use app\common\traits\Showmsg;
-
 class Captcha
 {
-	use Showmsg;
-
 	/**
 	 * 生成验证码图片和相关信息
 	 */
@@ -129,7 +125,8 @@ class Captcha
 		}
 		// $data['str']是图片的path加密, 用于前端交换验证码图片
 		// 这里前端不涉及拿到角度, 都是去后端验证
-		$this->result(0, 'success', $data['str']);
+		// 可以使用header传递token为X-CaptchaToken
+		$this->result(0, 'success', ['str' => $data['str']], ['X-CaptchaToken' => $data['token']]);
 	}
 	
 	/**
@@ -137,8 +134,9 @@ class Captcha
 	 */
 	public function verify(Request $request)
 	{
-		$token = $request->get('token');
 		$angle = $request->get('angle');
+		// 优先从header获取token
+        $token = $request->header('X-CaptchaToken') ?: $request->get('token');
 
 		if(empty($token) || empty($angle)) {
 			$this->result(1, 'error');
@@ -173,6 +171,25 @@ class Captcha
 			'Content-Type' => $mime,
 			'Content-Length' => strlen($image)
 		]);
+	}
+
+	/**
+	 * 返回json
+	 */
+	public function result(int|string $code = 0, string $msg = 'success', array|string $data, array $header = [])
+	{
+		$result = [
+			'code' => $code,
+			'data' => $data,
+			'msg' => lang($msg) ?: ($code > 0 ? 'error' : 'success'),
+		];
+
+		$response = Response::create($result, 'json')->code(200);
+
+		if(!empty($header)) {
+			$response = $response->header($header);
+		}
+		throw new \think\exception\HttpResponseException($response);
 	}
 }
 
@@ -230,10 +247,12 @@ $data = Captcha::configDrive(\CaptchaConfig::class)->setLang('zh-cn')->create(pa
 header('Content-Type:application/json; charset=utf-8');
 
 if($data) {
+	// 可以使用header传递token
+	header('X-CaptchaToken: '. $data['token']);
 	echo json_encode([
 		'code' => 0,
 		'msg' => 'success',
-		'data' => ['token' => $data['token'], 'str' => $data['str']],
+		'data' => [/*'token' => $data['token'], */'str' => $data['str']],
 	]);
 }
  
@@ -273,7 +292,6 @@ echo $image;
 
 use isszz\captcha\rotate\Store;
 use isszz\captcha\rotate\Config;
-use isszz\captcha\rotate\support\Str;
 
 // 配置获取驱动，需要基于\isszz\captcha\rotate\Config实现如下方法:
 class CaptchaConfig extends Config
@@ -332,9 +350,7 @@ class CaptchaSessionStore extends Store
 
 	public function put(?int $degrees): string
 	{
-		$token = \isszz\captcha\rotate\support\Str::random(32, 'alnum');
-
-		$payload = $this->buildPayload($degrees);
+		[$token, $payload] = $this->buildPayload($degrees);
 
 		// 存储token, 并设置token过期时间ttl
 		Session::put($token, $payload, $this->ttl);
@@ -345,7 +361,6 @@ class CaptchaSessionStore extends Store
 
 
 ```
-
 
 ## 前端配置项
 ```javascript
