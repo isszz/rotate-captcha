@@ -136,7 +136,7 @@ class Captcha
 	{
 		$angle = $request->get('angle');
 		// 优先从header获取token
-        $token = $request->header('X-CaptchaToken') ?: $request->get('token');
+		$token = $request->header('X-CaptchaToken') ?: $request->get('token');
 
 		if(empty($token) || empty($angle)) {
 			$this->result(1, 'error');
