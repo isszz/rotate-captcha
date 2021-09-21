@@ -450,3 +450,51 @@ modal.element.find('.J__captcha__').captcha({
 // var captcha = modal.element.find('.J__captcha__').data('captcha');
 // console.log(captcha.state());
 ```
+#### 在uniapp中使用
+```vue
+<template >
+	<view>
+		<rotate-captcha :options="captchaOptions" v-if="captchaShow" @init="captchaInit" @close="captchaShow = false" @complete="captchaComplete" @success="captchaSuccess" @fail="captchaFail"></rotate-captcha>
+	</view>
+</template>
+<script>
+	export default {
+		data() {
+			return {
+				captchaShow: false,
+				captchaOptions: {
+					theme: '#07f',
+					title: '安全验证',
+					desc: '拖动滑块，使图片角度为正',
+					successClose: 1500, // 验证成功后页面关闭时间
+					timerProgressBar: true, // 验证成功后关闭时是否显示进度条
+					timerProgressBarColor: 'rgba(0, 0, 0, 0.2)',
+					url: {
+						info: 'http://cfyun.cc/common/captcha/rotate', // 获取验证码信息
+						check: 'http://cfyun.cc/common/captcha/verify', // 验证
+						img: 'http://cfyun.cc/common/captcha/img', // 交换图片
+					},	
+				},
+			}
+		},
+		created: function () {
+			// 显示验证码
+			this.captchaShow = true
+		},
+		methods: {
+			captchaInit(captcha) {
+				// console.log(captcha)
+			},
+			captchaSuccess() {
+				// console.log('captcha success')
+			},
+			captchaFail() {
+				// console.log('caotcha fail')
+			},
+			captchaComplete(state) {
+				// console.log('caotcha complete state: ' + state)
+			},
+		}
+
+	}
+```

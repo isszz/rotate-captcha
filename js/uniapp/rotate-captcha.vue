@@ -55,7 +55,6 @@ export default {
 				theme: '#07f',
 				title: '安全验证',
 				desc: '拖动滑块，使图片角度为正',
-				width: 305, // 验证界面的宽度
 				successClose: 1500, // 验证成功后页面关闭时间
 				timerProgressBar: true, // 验证成功后关闭时是否显示进度条
 				timerProgressBarColor: 'rgba(0, 0, 0, 0.2)',
@@ -100,6 +99,7 @@ export default {
 				control: '',
 			},
 			size: {
+				width: 305,
 				img: 152,
 				control: 275,
 				imgMargin: 10,
@@ -109,22 +109,22 @@ export default {
 	created() {
 		const sysInfo = uni.getSystemInfoSync()
 		// console.log(sysInfo)
-		
+
 		let index = 0
 		this.token = ''
-		
+
 		// this.data.id = index++ || 0
 		let padding = 60
 		if(sysInfo.windowWidth < 417) {
 			padding = 40
 		}
-		this.options.width = sysInfo.windowWidth - 40
-		if(this.options.width > 520) {
-			this.options.width = 520
+		this.size.width = sysInfo.windowWidth - 40
+		if(this.size.width > 520) {
+			this.size.width = 520
 		}
-		this.size.img = parseInt(this.options.width / 2)
-		this.size.control = parseInt(this.options.width - 30)
-		this.size.imgMargin = parseInt(this.options.width / 10);
+		this.size.img = parseInt(this.size.width / 2)
+		this.size.control = parseInt(this.size.width - 30)
+		this.size.imgMargin = parseInt(this.size.width / 10);
 	},
 	mounted() {
 		this.init()
@@ -137,20 +137,20 @@ export default {
 	methods: {
 		init() {
 			this.theme.root = '--theme: '+this.options.theme+';--progress-bar-color: '+this.options.timerProgressBarColor+';--size-width: 305px;--size-img: 152px;--size-img-margin: 28px;--size-control: 275px;'
-			this.theme.wrap = '--size-width: '+this.options.width+'px'
+			this.theme.wrap = '--size-width: '+this.size.width+'px'
 			this.theme.image = '--size-img-margin: '+this.size.imgMargin+'px'
 			this.theme.img = '--size-img: '+this.size.img+'px'
 			this.theme.control = '--size-control: '+this.size.control+'px'
-			
+
 			this.$emit('init', this)
-			
+
 			const _this = this
-			
+
 			this.loadImage();
 		},
 		loadImage() {
 			let callback = callback || function() {};
-			
+
 			const _this = this
 			uni.request({
 				url: _this.options.url.info,
@@ -166,7 +166,7 @@ export default {
 		},
 		check() {
 			const _this = this
-			
+
 			uni.request({
 				url: _this.options.url.check,
 				data: {
@@ -186,7 +186,7 @@ export default {
 						_this.timerProgressBar(parseInt(_this.options.successClose) || 1500)
 						return false
 					}
-					
+
 					_this.$emit('fail')
 					_this.$emit('complete', false)
 					_this.runtime.token = ''
@@ -194,7 +194,7 @@ export default {
 					_this.runtime.stateClass = ' captcha-fail'
 					_this.runtime.control = ' captcha-control-horizontal'
 					_this.dragTimerState = true
-					
+
 					setTimeout(function() {
 						_this.x = 0
 						_this.disabled = false
@@ -206,7 +206,7 @@ export default {
 				})
 			})
 		},
-        refresh() {
+		refresh() {
 			this.runtime = {
 				deg: 0,
 				token: '',
@@ -222,7 +222,7 @@ export default {
 				loaded: false,
 				coordinate: false,
 			};
-			
+
 			this.loadImage()
 		},
 		onChange(e) {
@@ -230,7 +230,7 @@ export default {
 				this.disabled = true
 				return false
 			}
-			
+
 			this.disabled = false
 			if(e.detail.source === 'touch') {
 				this.x = e.detail.x
@@ -252,15 +252,15 @@ export default {
 			if (!this.isStart) {
 				return false
 			}
-			
+
 			this.isStart = false
-			
+
 			if (this.runtime.state || this.runtime.stateClass != '') {
 				return false
 			}
-			
+
 			this.runtime.buttonActive = false
-			
+
 			if(!this.runtime.deg || this.x < 5) {
 				this.runtime.coordinate = false
 				this.runtime.transform = 'transform: rotate(0deg)'
@@ -297,7 +297,7 @@ export default {
 			} else {
 				this.runtime.coordinate = false
 			}
-			
+
 			this.runtime.transform = 'transform: rotate('+ this.runtime.deg +'deg)'
 		},
 		imageLoaded() {
@@ -322,7 +322,7 @@ export default {
 			}, timer + 10)
 
 			this.runtime.progressBar = 'display: flex'
-			
+
 			setTimeout(() => {
 				_this.runtime.progressBar = `display: flex;transition: width ${timer / 1000}s linear;width: 0%`
 			}, 10)
