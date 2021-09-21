@@ -495,6 +495,6 @@ modal.element.find('.J__captcha__').captcha({
 				// console.log('caotcha complete state: ' + state)
 			},
 		}
-
 	}
+</script>
 ```
