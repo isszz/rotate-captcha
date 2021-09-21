@@ -57,6 +57,17 @@ return [
 		'quality' => 80,
 		'bgcolor' => '', // 底色, white
 	],
+    // Redis存储驱动需要的配置
+    'redis' => [
+		'host'       => '127.0.0.1',
+		'port'       => 6379,
+		'password'   => '',
+		'select'     => 0,
+		'timeout'    => 0,
+		'expire'     => 0,
+		'persistent' => false,
+		'prefix'     => 'captcha_',
+	],
 	// token存储驱动，默认为thinkphp6，需要其他的可以参考下面实现
 	// 'store' => isszz\captcha\rotate\store\CacheStore::class, // cache token存储驱动，基于thinkphp6
 	// 'store' => isszz\captcha\rotate\store\CookieStore::class, // cookie token存储驱动，基于thinkphp6
