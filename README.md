@@ -38,6 +38,7 @@ Imagick方式只做了基本的测试
 **如有BUG请issue, 谢谢**
 
 ## JS部分说明
+
 已实现jquery版，原生js版，vue版，uniapp版（各个小程序平台，应该差不多都可以用吧？）
 ~~依赖jquery，暂时使用了一个model插件，下次更新把这个model改成接口，可对接自己的model~~
 react版，有能力的朋友参考现有版自行实现下哦
