@@ -1,6 +1,7 @@
-<template>
+<template name="isszz-captcha">
 	<view :class="'captcha-root'+ runtime.show" :style="theme.root">
 		<view class="captcha-modal">
+			<view class="captcha-modal-close" @click.stop="close"><image src="./svg/close.svg"></image></view>
 			<view class="captcha-wrap">
 				<view class="captcha" :style="theme.wrap">
 					<view class="captcha-title">
@@ -27,14 +28,10 @@
 								</view>
 							</view>
 						</view>
-						<!--view class="captcha-control" :style="theme.control">
-							<view class="captcha-control-wrap"></view>
-							<view class="captcha-control-button"><text class="icon"></text></view>
-						</view-->
 						<movable-area :class="'captcha-control'+runtime.control" :style="theme.control">
 							<view class="captcha-control-wrap"></view>
 							<movable-view :class="runtime.buttonActive ? 'captcha-control-button captcha-button-active' : 'captcha-control-button'" :x="x" :damping="100" :disabled="disabled" direction="horizontal"
-				@change="onChange" @touchstart="touchStart" @touchend="touchEnd" @htouchmove=""><text class="icon"></text></movable-view>
+				@change="onChange" @touchstart="touchStart" @touchend="touchEnd"><text class="icon"></text></movable-view>
 						</movable-area>
 					</view>
 					<view class="captcha-timer-progress-bar-wrap">
@@ -47,7 +44,7 @@
 </template>
 <script>
 export default {
-	name: 'rcaptcha',
+	name: 'isszz-captcha',
 	props: {
 		options: {
 			type: Object,
@@ -109,16 +106,16 @@ export default {
 	created() {
 		const sysInfo = uni.getSystemInfoSync()
 		// console.log(sysInfo)
-
+		
 		let index = 0
 		this.token = ''
-
+		
 		// this.data.id = index++ || 0
 		let padding = 60
 		if(sysInfo.windowWidth < 417) {
 			padding = 40
 		}
-		this.size.width = sysInfo.windowWidth - 40
+		this.size.width = sysInfo.windowWidth - 60
 		if(this.size.width > 520) {
 			this.size.width = 520
 		}
@@ -141,20 +138,31 @@ export default {
 			this.theme.image = '--size-img-margin: '+this.size.imgMargin+'px'
 			this.theme.img = '--size-img: '+this.size.img+'px'
 			this.theme.control = '--size-control: '+this.size.control+'px'
-
+			
 			this.$emit('init', this)
-
+			
 			const _this = this
-
+			
 			this.loadImage();
 		},
 		loadImage() {
 			let callback = callback || function() {};
-
+			
 			const _this = this
 			uni.request({
 				url: _this.options.url.info,
 				success: ((res) => {
+					if(res.statusCode != 200) {
+						uni.showModal({
+							title: '提示',
+							content: '系统出错：'+ res.statusCode +'，请关闭重试！',
+							showCancel: false,
+							success: function (res) {
+								_this.$emit('close', false)
+							}
+						})
+						return false
+					}
 					if(res.data.code == 0) {
 						_this.runtime.token = res.header['x-captchatoken']
 						_this.url = _this.options.url.img + '?id=' + res.data.data.str
@@ -166,7 +174,7 @@ export default {
 		},
 		check() {
 			const _this = this
-
+			
 			uni.request({
 				url: _this.options.url.check,
 				data: {
@@ -178,7 +186,7 @@ export default {
 				success: ((res) => {
 					_this.runtime.deg = 0
 					_this.runtime.coordinate = false
-					if(res.data.code == 0) {
+					if(res.statusCode == 200 && res.data.code == 0) {
 						_this.runtime.state = true
 						_this.runtime.stateClass = ' captcha-success'
 						_this.$emit('success')
@@ -186,7 +194,7 @@ export default {
 						_this.timerProgressBar(parseInt(_this.options.successClose) || 1500)
 						return false
 					}
-
+					
 					_this.$emit('fail')
 					_this.$emit('complete', false)
 					_this.runtime.token = ''
@@ -194,7 +202,14 @@ export default {
 					_this.runtime.stateClass = ' captcha-fail'
 					_this.runtime.control = ' captcha-control-horizontal'
 					_this.dragTimerState = true
-
+					
+					if(res.statusCode != 200) {
+						uni.showModal({
+							title: '提示',
+							content: '系统出错：'+ res.statusCode +'，请重试！',
+							showCancel: false,
+						})
+					}
 					setTimeout(function() {
 						_this.x = 0
 						_this.disabled = false
@@ -206,7 +221,9 @@ export default {
 				})
 			})
 		},
-		refresh() {
+		close() {
+			this.$emit('close', this.runtime.state)
+			
 			this.runtime = {
 				deg: 0,
 				token: '',
@@ -222,7 +239,24 @@ export default {
 				loaded: false,
 				coordinate: false,
 			};
-
+		},
+        refresh() {
+			this.runtime = {
+				deg: 0,
+				token: '',
+				show: ' show',
+				control: '',
+				imageLoaded: false,
+				progressBar: 'display: none',
+				transform: 'transform: rotate(0deg)',
+				buttonActive: false,
+				stateClass: '',
+				fail: false,
+				state: false,
+				loaded: false,
+				coordinate: false,
+			};
+			
 			this.loadImage()
 		},
 		onChange(e) {
@@ -230,12 +264,11 @@ export default {
 				this.disabled = true
 				return false
 			}
-
+			
 			this.disabled = false
 			if(e.detail.source === 'touch') {
 				this.x = e.detail.x
 			}
-			console.log(this.x)
 
 			this.move(this.x)
 		},
@@ -252,15 +285,15 @@ export default {
 			if (!this.isStart) {
 				return false
 			}
-
+			
 			this.isStart = false
-
+			
 			if (this.runtime.state || this.runtime.stateClass != '') {
 				return false
 			}
-
+			
 			this.runtime.buttonActive = false
-
+			
 			if(!this.runtime.deg || this.x < 5) {
 				this.runtime.coordinate = false
 				this.runtime.transform = 'transform: rotate(0deg)'
@@ -297,7 +330,7 @@ export default {
 			} else {
 				this.runtime.coordinate = false
 			}
-
+			
 			this.runtime.transform = 'transform: rotate('+ this.runtime.deg +'deg)'
 		},
 		imageLoaded() {
@@ -322,7 +355,7 @@ export default {
 			}, timer + 10)
 
 			this.runtime.progressBar = 'display: flex'
-
+			
 			setTimeout(() => {
 				_this.runtime.progressBar = `display: flex;transition: width ${timer / 1000}s linear;width: 0%`
 			}, 10)

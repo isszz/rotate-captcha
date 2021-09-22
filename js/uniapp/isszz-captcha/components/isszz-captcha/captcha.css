@@ -5,7 +5,7 @@
 	right: 0;
 	bottom: 0;
 	left: 0;
-	z-index: 999999;
+	z-index: 999;
 	opacity: 0;
 	outline: 0;
 	text-align: center;
@@ -44,7 +44,18 @@
 	border-radius: 10upx;
 	overflow: hidden;
 }
-
+.captcha-modal-close,
+.captcha-modal-close image {
+	width: 30rpx;
+	height: 30rpx;
+}
+.captcha-modal-close {
+	position: absolute;
+	top: 20rpx;
+	right: 20rpx;
+	z-index: 993;
+	cursor: pointer;
+}
 .captcha {
 	position: relative;
 	width: var(--size-width);
@@ -74,7 +85,7 @@
 }
 .captcha-img {
 	position: relative;
-	z-index: 999;
+	z-index: 991;
 	width: var(--size-img);
 	height: var(--size-img);
 	-webkit-border-radius: 50%;
@@ -115,7 +126,7 @@
 .captcha-coordinate {
 	/*display: none;*/
 	position: absolute;
-	z-index: 1000;
+	z-index: 992;
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -192,7 +203,7 @@
 .captcha-image .captcha-state {
 	display: none;
 	position: absolute;
-	z-index: 1000;
+	z-index: 992;
 	top: 0;
 	left: 0;
 	width: 100%;
