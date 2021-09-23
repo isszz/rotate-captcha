@@ -26,7 +26,7 @@ abstract class Handle implements HandleInterface
 		$src_min = min($this->info['width'], $this->info['height']);
 
 		if($src_min < 160) {
-			return false;
+			throw new CaptchaException('The image height and width dimensions must be greater than 160px.');
 		}
 
 		if($src_min < $this->size) {
