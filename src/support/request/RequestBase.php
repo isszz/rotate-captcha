@@ -16,10 +16,10 @@ class RequestBase
      * @var array
      */
     protected $proxyServerIpHeader = ['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP'];
-    
+
     /**
      * Get $_SERVER value
-     * 
+     *
      * @param string|null $name
      * @param string|null $defaultValue
      * @return array|string|null
@@ -32,10 +32,10 @@ class RequestBase
 
         return (isset($_SERVER[$name])) ? $_SERVER[$name] : $defaultValue;
     }
-    
+
     /**
      * Get header
-     * 
+     *
      * @param string|null $name
      * @param string|null $defaultValue
      * @return array|string|null
@@ -53,7 +53,7 @@ class RequestBase
 
     /**
      * Get all header
-     * 
+     *
      * @return array
      */
     public function getAllHeaders(): array

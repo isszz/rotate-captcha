@@ -90,6 +90,7 @@ declare (strict_types = 1);
 
 namespace app\common\controller;
 
+use isszz\captcha\rotate\CaptchaException;
 use isszz\captcha\rotate\facade\Captcha as RotateCaptcha;
 
 use think\Response;
@@ -215,6 +216,7 @@ class Captcha
 ```php
 <?php
 use isszz\captcha\rotate\facade\Captcha;
+use isszz\captcha\rotate\CaptchaException;
 
 // 这里用到的Config用自己框架的配置类
 class CaptchaConfig extends \isszz\captcha\rotate\Config

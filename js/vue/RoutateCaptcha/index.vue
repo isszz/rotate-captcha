@@ -11,7 +11,7 @@
 					<div :class="'captcha-main'+runtime.stateClass">
 						<div class="captcha-wrap">
 							<div class="captcha-image" :style="theme.image">
-								<div :class="runtime.imageLoaded ? 'captcha-img' : 'captcha-img captcha-loading'" :style="theme.img">
+								<div :class="runtime.loaded ? 'captcha-img' : 'captcha-img captcha-loading'" :style="theme.img">
 									<img :src="url" :style="runtime.transform" @load="imageLoaded" />
 									<div class="captcha-loader">
 										<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 38 38">
@@ -35,7 +35,7 @@
 										</svg>
 									</div>
 								</div>
-								<div class="captcha-coordinate" v-show="runtime.coordinate"></div>
+								<div class="captcha-coordinate" v-if="runtime.coordinate"></div>
 								<div class="captcha-state">
 									<div class="captcha-state-icon-success">
 										<img src="./svg/success.svg" />
@@ -60,7 +60,6 @@
 	</div>
 </template>
 <script>
-// 暂无用, 没兼容touch事件
 const isTouch = 'ontouchstart' in window
 export default {
 	name: 'RoutateCaptcha',
@@ -75,9 +74,12 @@ export default {
 				timerProgressBar: true, // 验证成功后关闭时是否显示进度条
 				timerProgressBarColor: 'rgba(0, 0, 0, 0.2)',
 				request: {
-					info: (callback) => {},
-					check: (angle, token, callback) => {},
-					img: (id) => {},
+					info: (callback) => {
+					},
+					check: (angle, token, callback) => {
+					},
+					img: (id) => { 
+					},
 				},
 				url: {
 					info: '/captcha', // 获取验证码信息
@@ -91,17 +93,17 @@ export default {
 		return {
 			x: 0,
 			id: 0,
+			url: '',
 			disPageX: 0,
 			disabled: false,
 			isStart: false,
 			dragTimerState: false,
-			url: '',
 			runtime: {
 				deg: 0,
 				token: '',
 				show: ' show',
 				control: '',
-				imageLoaded: false,
+				loaded: false,
 				progressBar: 'display: none',
 				transform: 'transform: rotate(0deg)',
 				buttonTransform: '',
@@ -109,7 +111,6 @@ export default {
 				stateClass: '',
 				fail: false,
 				state: false,
-				loaded: false,
 				coordinate: false,
 			},
 			theme: {
@@ -160,17 +161,17 @@ export default {
 			const _this = this
 
             _this.$controlButton = this.$el.querySelectorAll('.captcha-root .captcha-control-button')[0]
-
+			
 			if(isTouch) {
 				_this.initTouch()
 			} else {
 				_this.initMouse()
 			}
 			
-			this.loadImage();
+			this.loadImage()
 		},
 		loadImage() {
-			let callback = callback || function() {};
+			let callback = callback || function() {}
 			
 			const _this = this
 			this.options.request.info((res, token) => {
@@ -184,7 +185,6 @@ export default {
 		},
 		check() {
 			const _this = this
-
 			this.options.request.check(this.runtime.deg, _this.runtime.token, (res) => {
 				_this.runtime.deg = 0
 				_this.runtime.coordinate = false
@@ -204,6 +204,7 @@ export default {
 				_this.runtime.stateClass = ' captcha-fail'
 				_this.runtime.control = ' captcha-control-horizontal'
 				_this.dragTimerState = true
+				_this.animated = true
 				
 				setTimeout(function() {
 					_this.x = 0
@@ -211,6 +212,7 @@ export default {
 					_this.runtime.stateClass = ''
 					_this.runtime.control = ''
 					_this.dragTimerState = false
+					_this.animated = false
 					_this.refresh()
 				}, 1000)				
 			})
@@ -225,7 +227,6 @@ export default {
 				token: '',
 				show: ' show',
 				control: '',
-				imageLoaded: false,
 				progressBar: 'display: none',
 				transform: 'transform: rotate(0deg)',
 				buttonActive: false,
@@ -270,6 +271,71 @@ export default {
 			this.runtime.buttonTransform = 'transform: translateX('+ this.x +'px)'
 			this.spinImage()
 		},
+		initTouch() {
+			let _this = this;
+
+			let disPageX = 0
+
+			const move = function(e) {
+				e.preventDefault()
+				
+				if (!_this.isStart || _this.dragTimerState) {
+					return !1;
+				}
+				
+				_this.x = e.targetTouches[0].pageX - disPageX
+				
+				_this.move(_this.x)
+			}
+			
+			_this.$controlButton.addEventListener('touchstart', function (e) {
+				if (
+					!_this.runtime.loaded ||
+					_this.runtime.state ||
+					_this.dragTimerState ||
+					_this.runtime.stateClass != ''
+				) {
+					_this.disabled = true
+					return false
+				}
+				
+				_this.isStart = true
+				_this.disabled = false
+				
+				disPageX = e.targetTouches[0].pageX
+
+				_this.runtime.coordinate = true
+				_this.runtime.buttonActive = true
+			})
+
+			_this.$controlButton.addEventListener('touchmove', move, false)
+
+			_this.$controlButton.addEventListener('touchend', function (e) {
+				if (!_this.isStart) {
+					return false
+				}
+
+				_this.isStart = false
+				
+				if (_this.runtime.state || _this.dragTimerState || _this.runtime.stateClass != '') {
+					return false
+				}
+				
+				_this.runtime.buttonActive = false
+				
+				document.removeEventListener('touchmove', move)
+
+				if(!_this.runtime.deg || _this.runtime.left < 5) {
+					_this.runtime.coordinate = false
+					_this.runtime.transform = 'transform: rotate(0deg)'
+					_this.runtime.buttonTransform = 'transform: translateX'
+					return false
+				}
+
+				// 验证
+				_this.check()
+			}, false)	
+		},
         initMouse() {
 			const _this = this
 			
@@ -288,7 +354,7 @@ export default {
 			
 			_this.$controlButton.addEventListener('mousedown', function (e) {
 				if (
-					!_this.runtime.imageLoaded ||
+					!_this.runtime.loaded ||
 					_this.dragTimerState ||
 					_this.runtime.state ||
 					_this.runtime.stateClass != ''
@@ -297,8 +363,8 @@ export default {
 					return false
 				}
 				
-				_this.disabled = false				
 				_this.isStart = true
+				_this.disabled = false
 				
 				disPageX = e.pageX
 				
@@ -332,16 +398,10 @@ export default {
 			}, false)
         },
 		spinImage() {
-			if(this.runtime.deg) {
-				this.runtime.coordinate = true
-			} else {
-				this.runtime.coordinate = false
-			}
-			
 			this.runtime.transform = 'transform: rotate('+ this.runtime.deg +'deg)'
 		},
 		imageLoaded() {
-			this.runtime.imageLoaded = true
+			this.runtime.loaded = true
 		},
 		timerProgressBar(timer) {
 			const _this = this;
@@ -421,13 +481,13 @@ export default {
 }
 .captcha-modal-close,
 .captcha-modal-close img {
-	width: 30px;
-	height: 30px;
+	width: 15px;
+	height: 15px;
 }
 .captcha-modal-close {
 	position: absolute;
-	top: 20px;
-	right: 20px;
+	top: 10px;
+	right: 10px;
 	z-index: 993;
 	cursor: pointer;
 }
@@ -519,7 +579,8 @@ export default {
 	position: relative;
 	width: var(--size-control);
 	height: 50px;
-	margin: 0 auto;    
+	margin: 0 auto;
+	user-select: none;
 }
 .captcha-control-wrap,
 .captcha-control-button {
