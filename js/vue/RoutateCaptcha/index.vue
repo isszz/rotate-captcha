@@ -12,7 +12,17 @@
 						<div class="captcha-wrap">
 							<div class="captcha-image" :style="theme.image">
 								<div :class="runtime.loaded ? 'captcha-img' : 'captcha-img captcha-loading'" :style="theme.img">
-									<img :src="url" :style="runtime.transform" @load="imageLoaded" />
+									<canvas
+										v-show="runtime.loaded"
+										type="2d"
+										class="captcha-canvas-image"
+										id="captchaImage"
+										:width="size.img"
+										:height="size.img"
+										:style="'width:' + size.img + 'px; height:' + size.img + 'px;'"
+										disable-scroll
+									>
+									</canvas>
 									<div class="captcha-loader">
 										<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 38 38">
 											<defs>
@@ -93,6 +103,8 @@ export default {
 		return {
 			x: 0,
 			id: 0,
+			ctx: null,
+			canvas: null,
 			url: '',
 			disPageX: 0,
 			disabled: false,
@@ -159,8 +171,22 @@ export default {
 			this.$emit('init', this)
 			
 			const _this = this
-
-            _this.$controlButton = this.$el.querySelectorAll('.captcha-root .captcha-control-button')[0]
+			
+			this.canvas = this.$el.querySelectorAll('#captchaImage')[0]
+			this.canvas.width = this.size.img
+			this.canvas.height = this.size.img
+			
+			this.ctx = this.canvas.getContext('2d')
+			
+			this.pos = {
+				y: 0, x: 0,
+				ave: Math.round((360 / (this.size.control - 50)) * 100 ) / 100
+			}
+			
+			this.pos.x = this.pos.y = this.size.img / 2
+			this.image = new Image()
+			
+			_this.$controlButton = this.$el.querySelectorAll('.captcha-root .captcha-control-button')[0]
 			
 			if(isTouch) {
 				_this.initTouch()
@@ -178,10 +204,35 @@ export default {
 				if(res.code == 0) {
 					_this.runtime.token = token
 					_this.url = _this.options.request.img(res.data.str)
+					
+					_this.image.src = _this.url
+					
+					_this.image.onerror = (err) => {
+						_this.options.toast(err)
+					}
+					_this.image.onload = (r) => {
+						_this.runtime.loaded = true
+						_this.drawImage()
+					}
+					
 					return false
 				}
 				_this.runtime.token = ''
 			})
+		},
+		drawImage() {
+			const _this = this
+			_this.ctx.beginPath()
+			_this.ctx.arc(100, 100, _this.size.img, 0, 360 * Math.PI / 180, false)
+			_this.ctx.closePath()
+			_this.ctx.clip()
+			_this.ctx.save()
+			_this.ctx.clearRect(0, 0, _this.size.img, _this.size.img)
+			_this.ctx.translate(_this.pos.x, _this.pos.y)
+			_this.ctx.rotate(_this.x * _this.pos.ave * Math.PI / 180)
+			_this.ctx.translate(-_this.pos.x, -_this.pos.y)
+			_this.ctx.drawImage(_this.image, 0, 0, _this.size.img, _this.size.img)
+			_this.ctx.restore()
 		},
 		check() {
 			const _this = this
@@ -250,7 +301,8 @@ export default {
 		
 			let width = this.size.control - 50
 			this.runtime.deg = (360 / width) * x
-		
+			this.x = x
+			
 			if (x > (width + 1)) {
 				this.x = 0
 			}
@@ -268,11 +320,12 @@ export default {
 					this.runtime.buttonActive = false
 				}
 			}
+			
+			this.drawImage()
 			this.runtime.buttonTransform = 'transform: translateX('+ this.x +'px)'
-			this.spinImage()
 		},
 		initTouch() {
-			let _this = this;
+			const _this = this;
 
 			let disPageX = 0
 
@@ -332,7 +385,6 @@ export default {
 					return false
 				}
 
-				// 验证
 				_this.check()
 			}, false)	
 		},
@@ -368,6 +420,7 @@ export default {
 				
 				disPageX = e.pageX
 				
+				_this.runtime.coordinate = true
 				_this.runtime.buttonActive = true
 			
 				document.addEventListener('mousemove', move)
@@ -397,9 +450,6 @@ export default {
 				_this.check()
 			}, false)
         },
-		spinImage() {
-			this.runtime.transform = 'transform: rotate('+ this.runtime.deg +'deg)'
-		},
 		imageLoaded() {
 			this.runtime.loaded = true
 		},
