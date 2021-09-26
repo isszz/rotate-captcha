@@ -65,8 +65,8 @@ return [
 		'quality' => 80,
 		'bgcolor' => '', // 底色, white
 	],
-    // Redis存储驱动需要的配置
-    'redis' => [
+	// Redis存储驱动需要的配置
+	'redis' => [
 		'host'       => '127.0.0.1',
 		'port'       => 6379,
 		'password'   => '',
@@ -146,8 +146,8 @@ class Captcha
 		}
 		*/
 
-        // 新增: 从指定目录随机读取文件，这个方法不知道效率如何，基于FilesystemIterator类实现
-        $image = File::make(upload_path('captcha_mtl'))->rand();
+		// 新增: 从指定目录随机读取文件，这个方法不知道效率如何，基于FilesystemIterator类实现
+		$image = File::make(upload_path('captcha_mtl'))->rand();
 
 		// 生成验证码需要的图片
 		// setLang设置语言
