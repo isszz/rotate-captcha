@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace isszz\captcha\rotate\support\encrypter;
 
+use isszz\captcha\rotate\CaptchaException;
+
 abstract class EncrypterBase
 {
     /**
@@ -30,7 +32,7 @@ abstract class EncrypterBase
      * @param  string  $payload
      * @return array
      *
-     * @throws \Exception
+     * @throws CaptchaException
      */
     protected function getJsonPayload($payload)
     {
@@ -40,11 +42,11 @@ abstract class EncrypterBase
         // assume it is invalid and bail out of the routine since we will not be able
         // to decrypt the given value. We'll also check the MAC for this encryption.
         if (! $payload || $this->invalidPayload($payload)) {
-            throw new \Exception('The payload is invalid.');
+            throw new CaptchaException('The payload is invalid.');
         }
 
         if (! $this->validMac($payload)) {
-            throw new \Exception('The MAC is invalid.');
+            throw new CaptchaException('The MAC is invalid.');
         }
 
         return $payload;
@@ -67,7 +69,7 @@ abstract class EncrypterBase
      * @param  array  $payload
      * @return bool
      *
-     * @throws \Exception
+     * @throws CaptchaException
      */
     protected function validMac(array $payload)
     {

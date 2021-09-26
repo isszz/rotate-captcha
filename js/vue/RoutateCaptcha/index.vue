@@ -1,5 +1,5 @@
 <template name="RoutateCaptcha">
-	<div :class="'captcha-root'+ runtime.show" :style="theme.root">
+	<div :class="'captcha-root'+ (runtime.show ? ' show' : '')" :style="theme.root">
 		<div class="captcha-modal">
 			<div class="captcha-modal-close" @click.stop="close"><img src="./svg/close.svg" /></div>
 			<div class="captcha-wrap">
@@ -101,7 +101,7 @@ export default {
 			runtime: {
 				deg: 0,
 				token: '',
-				show: ' show',
+				show: true,
 				control: '',
 				loaded: false,
 				progressBar: 'display: none',
@@ -225,7 +225,7 @@ export default {
 			this.runtime = {
 				deg: 0,
 				token: '',
-				show: ' show',
+				show: true,
 				control: '',
 				progressBar: 'display: none',
 				transform: 'transform: rotate(0deg)',

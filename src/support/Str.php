@@ -2,6 +2,7 @@
 declare (strict_types = 1);
 
 namespace isszz\captcha\rotate\support;
+use isszz\captcha\rotate\CaptchaException;
 
 class Str
 {
@@ -37,12 +38,10 @@ class Str
 		{
 			case 'alpha':
 				return 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
 			case 'alnum':
 				return '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
 			default:
-				throw new \Exception("Invalid random string type [$type].");
+				throw new CaptchaException("Invalid random string type [$type].");
 		}
 	}
 }

@@ -10,6 +10,7 @@ return [
         'Verification timed out.' => '验证超时。',
         'Validation error.' => '验证错误。',
         'Directory creation failed.' => '目录创建失败。',
+        'Unable to create the :directory directory.' => '无法创建 :directory 目录。',
         'The directory does not have write permission.' => '该目录没有写权限。',
         'Config driver :driver does not exist.' => 'Config驱动 :driver 不存在。',
         // GD

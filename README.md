@@ -96,6 +96,8 @@ namespace app\common\controller;
 
 use isszz\captcha\rotate\CaptchaException;
 use isszz\captcha\rotate\facade\Captcha as RotateCaptcha;
+use isszz\captcha\rotate\support\File;
+
 
 use think\Response;
 use think\Request;
@@ -108,7 +110,7 @@ class Captcha
 	public function rotate(Request $request)
 	{
 		// 用于测试, 这部分, 可以自己整个素材库, 去数据库, 或者缓存下来总之很灵活
-		$list = [
+		/*$list = [
 			'1.png',
 			'2.png',
 			'1.jpg',
@@ -133,7 +135,19 @@ class Captcha
 		if(isset($list[$key])) {
 			// 从素材存放目录拿一个图
 			$image = upload_path('captcha_mtl') . $list[$key];  
+		}*/
+
+		// 说明: upload_path方法为自定义方法，更具自己使用的框架获取你存储素材的根目录即可
+		// 例如在tp6框架可以这么写:
+		/*
+		function upload_path(string $path = ''): string
+		{
+			return public_path(DIRECTORY_SEPARATOR .'uploads' . DIRECTORY_SEPARATOR . ($path ? ltrim($path, DIRECTORY_SEPARATOR) : $path));
 		}
+		*/
+
+        // 新增: 从指定目录随机读取文件，这个方法不知道效率如何，基于FilesystemIterator类实现
+        $image = File::make(upload_path('captcha_mtl'))->rand();
 
 		// 生成验证码需要的图片
 		// setLang设置语言
@@ -219,6 +233,7 @@ class Captcha
 ## 非thinkphp6框架, 可以参考如下
 ```php
 <?php
+use isszz\captcha\rotate\support\File;
 use isszz\captcha\rotate\facade\Captcha;
 use isszz\captcha\rotate\CaptchaException;
 
@@ -241,6 +256,7 @@ class CaptchaConfig extends \isszz\captcha\rotate\Config
 	}
 }
 
+/*
 $list = [
 	'1.png',
 	'2.png',
@@ -265,7 +281,13 @@ if(isset($list[$key])) {
 	$image = $list[$key];
 }
 
-$data = Captcha::configDrive(\CaptchaConfig::class)->setLang('zh-cn')->create(path('upload') . 'rvimg' . DS . $image, path('upload') . 'captcha' . DS)->get(260);
+$image = path('upload') . 'captcha_mtl' . DIRECTORY_SEPARATOR . $image;
+*/
+
+// 新增: 从指定目录随机读取文件，这个方法不知道效率如何，基于FilesystemIterator类实现
+$image = File::make(path('upload') . 'captcha_mtl' . DIRECTORY_SEPARATOR)->rand();
+
+$data = Captcha::configDrive(\CaptchaConfig::class)->setLang('zh-cn')->create($image, path('upload') . 'captcha' . DIRECTORY_SEPARATOR)->get(260);
 
 header('Content-Type:application/json; charset=utf-8');
 

@@ -5,6 +5,7 @@ namespace isszz\captcha\rotate;
 
 use isszz\captcha\rotate\support\request\Request;
 use isszz\captcha\rotate\support\encrypter\Encrypter;
+// use isszz\captcha\rotate\support\FileSystem;
 
 class Captcha
 {
@@ -243,7 +244,7 @@ class Captcha
 	 * @param string $uploadPath
 	 * @return array
 	 */
-	public function output(string $str = '', string $uploadPath = null): array
+	public function output(?string $str = '', string $uploadPath = null): array
 	{
 		if(empty($str)) {
 			return [null, ''];
@@ -477,20 +478,26 @@ class Captcha
 	/**
 	 * Create a directory
 	 *
-	 * @param string $dirname
+	 * @param string $directory
 	 * @return bool
 	 */
-	private function createFolder(string $dirname): bool
+	private function createFolder(string $directory): bool
 	{
-		if (!file_exists($dirname) && !is_dir($dirname) && !mkdir($dirname, 0777, true)) {
-			throw new CaptchaException($this->lang()->get('Directory creation failed.'));
-		} else if (!is_writeable($dirname)) {
+		if (!is_dir($directory)) {
+			try {
+				if (mkdir($directory, 0777, true) == false && !is_dir($directory)) {
+					throw new \Exception($this->lang()->get('Unable to create the :directory directory.', ['directory' => $directory]));
+				}
+			} catch (\Exception $e) {
+				throw new CaptchaException($this->lang()->get($e->getMessage()));
+			}
+		} else if (!is_writeable($directory)) {
 			throw new CaptchaException($this->lang()->get('The directory does not have write permission.'));
 		}
 
-		@chmod($dirname, 0777);
-		@fclose(@fopen($dirname . '/index.html', 'w'));
-		@chmod($dirname . '/index.html', 0777);
+		// @chmod($directory, 0777);
+		// @fclose(@fopen($directory . '/index.html', 'w'));
+		// @chmod($directory . '/index.html', 0777);
 
 		return true;
 	}

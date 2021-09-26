@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace isszz\captcha\rotate\support\encrypter;
 
+use isszz\captcha\rotate\CaptchaException;
+
 class Encrypter extends EncrypterBase
 {
     /**
@@ -19,7 +21,7 @@ class Encrypter extends EncrypterBase
      * @param  string  $cipher
      * @return void
      *
-     * @throws \Exception
+     * @throws CaptchaException
      */
     public function __construct($key, $cipher = 'AES-128-CBC')
     {
@@ -27,7 +29,7 @@ class Encrypter extends EncrypterBase
         if ($this->key = self::supported($key, $cipher)) {
             $this->cipher = $cipher;
         } else {
-            throw new \Exception('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+            throw new CaptchaException('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         }
     }
 
@@ -67,7 +69,7 @@ class Encrypter extends EncrypterBase
      * @param  string  $value
      * @return string
      *
-     * @throws \Exception
+     * @throws CaptchaException
      */
     public function encrypt($value)
     {
@@ -76,7 +78,7 @@ class Encrypter extends EncrypterBase
         $value = openssl_encrypt(serialize($value), $this->cipher, $this->key, 0, $iv);
 
         if ($value === false) {
-            throw new \Exception('Could not encrypt the data.');
+            throw new CaptchaException('Could not encrypt the data.');
         }
 
         // Once we have the encrypted value we will go ahead base64_encode the input
@@ -88,7 +90,7 @@ class Encrypter extends EncrypterBase
 
         if (! is_string($json))
         {
-            throw new \Exception('Could not encrypt the data.');
+            throw new CaptchaException('Could not encrypt the data.');
         }
 
         return base64_encode($json);
@@ -100,7 +102,7 @@ class Encrypter extends EncrypterBase
      * @param  string  $payload
      * @return string
      *
-     * @throws \Exception
+     * @throws CaptchaException
      */
     public function decrypt($payload)
     {
@@ -111,7 +113,7 @@ class Encrypter extends EncrypterBase
         $decrypted = openssl_decrypt($payload['value'], $this->cipher, $this->key, 0, $iv);
 
         if ($decrypted === false) {
-            throw new \Exception('Could not decrypt the data.');
+            throw new CaptchaException('Could not decrypt the data.');
         }
 
         return unserialize($decrypted);
