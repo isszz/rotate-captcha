@@ -88,7 +88,7 @@ class Captcha
 	{
 		$this->handleName = 'gd';
 
-		if(extension_loaded('imagemagick')) {
+		if(extension_loaded('imagick')) {
 			$this->handleName = 'imagick';
 		}
 
@@ -413,7 +413,7 @@ class Captcha
 			return $this->handle;
 		}
 
-		if($this->handleName === 'imagick') {
+		if($this->handleName === 'imagick' && $this->config('handle') == 'imagick') {
 			return $this->handle = new \isszz\captcha\rotate\handle\ImagickHandle($this, $this->image, $this->config('imagick'));
 		}
 

@@ -59,8 +59,7 @@ class ImagickHandle extends Handle
 			$_image->clear();
 			$_image->destroy();
 		}
-
-		if (!in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'])) {
+		if (!in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp', 'image/x-webp'])) {
 			throw new CaptchaException($this->captcha->lang()->get('Please use jpeg and png or webp images.'));
 		}
 
@@ -84,10 +83,15 @@ class ImagickHandle extends Handle
 		// header('Content-type: image/png');
 		// exit($this->front->getImageBlob());
 
+
 		$this->back->writeImage($this->cacheFilePath);
 
 		$this->back->clear();
 		$this->back->destroy();
+		
+		$this->front->clear();
+		$this->front->destroy();
+
 
 		return true;
 	}
@@ -125,7 +129,7 @@ class ImagickHandle extends Handle
 		// Draw the rectangle
 		$mask->drawImage($shape);
 		// Apply mask
-		$this->front->setImageMatte(1);
+		$this->front->setImageMatte(true);
 		$this->front->compositeImage($mask, Imagick::COMPOSITE_DSTIN, 0, 0);
 		// Rotate image
 		$this->front->rotateImage(new ImagickPixel('none'), $this->degrees);
@@ -183,9 +187,6 @@ class ImagickHandle extends Handle
 			// $this->back->setImageCompressionQuality(9);
 			$this->back->setOption('png:compression-level', 9);
 		}
-
-		$this->front->clear();
-		$this->front->destroy();
 
 		return true;
 	}
