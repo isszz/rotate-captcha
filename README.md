@@ -370,7 +370,7 @@ class CaptchaConfig extends Config
 
 // 自定义存储驱动，需要基于\isszz\captcha\rotate\Store实现如下方法:
 // 更多方式参考\isszz\captcha\rotate\store\文件夹内示例，只要能存储token怎么存自由发挥哈
-// 这里大家只需要实现, 验证token是否存在(当然此出可以省略，获取后判断也是一样), 获取token, 和删除token, 存储token
+// 这里大家只需要实现, 验证token是否存在(当然此处可以省略，获取后判断也是一样), 获取token, 和删除token, 存储token
 class CaptchaSessionStore extends Store
 {
 	public function get(string $token): array
