@@ -9,226 +9,226 @@ use isszz\captcha\rotate\CaptchaException;
 
 class GdHandle extends Handle
 {
-    public function __construct(Captcha $captcha, string $image, array $config = [])
-    {
-        if(!extension_loaded('gd')) {
-            throw new CaptchaException($captcha->lang()->get('Need to support GD extension.'));
-        }
-
-		$this->captcha = $captcha;
-        $this->image = $image;
-        $this->config = $config;
-        $this->outputMime = $this->captcha->getMime();
-        $this->outputType = $this->getExt();
-
-        return $this;
-    }
-
-    /**
-     * Get image info
-     *
-     * @param string $filePath
-     * @return array
-     */
-    public function getInfo(string $filePath = null): array
-    {
-        if(is_null($filePath)) {
-            $info = getimagesize($this->image);
-        } else {
-            // Only take image information
-            if (!is_file($filePath)) {
-                throw new CaptchaException($this->captcha->lang()->get('Image does not exist.'));
-            }
-
-            $info = getimagesize($filePath);
-
-            return $this->info = $this->formatImageInfo($info);
-        }
-
-        return $this->info = $this->formatImageInfo($info);
-    }
-
-    /**
-     * Save image
-     *
-     * @param int $size
-     * @return bool
-     */
-    public function save(int $size = 350): bool
-    {
-        if (!$this->build($size) || !$this->back) {
-            return false;
-        }
-
-        $mime = $this->info['mime'];
-
-		if($this->outputMime != $mime) {
-            $mime = $this->outputMime;
+	public function __construct(Captcha $captcha, string $image, array $config = [])
+	{
+		if(!extension_loaded('gd')) {
+			throw new CaptchaException($captcha->lang()->get('Need to support GD extension.'));
 		}
 
-        switch($mime) {
-            case 'image/jpg':
-            case 'image/jpeg':
-                imagejpeg($this->back, $this->cacheFilePath, $this->config['quality'] ?: 80);
-                break;
-            case 'image/webp':
-                imagepalettetotruecolor($this->back);
-                imagewebp($this->back, $this->cacheFilePath, $this->config['quality'] ?: 80);
-                break;
-            case 'image/png':
-                imagepng($this->back, $this->cacheFilePath);
-                break;
-            default:
-                return false;
-        }
+		$this->captcha = $captcha;
+		$this->image = $image;
+		$this->config = $config;
+		$this->outputMime = $this->captcha->getMime();
+		$this->outputType = $this->getExt();
 
-        imagedestroy($this->back);
-        imagedestroy($this->front);
-        
-        return true;
-    }
+		return $this;
+	}
 
-    /**
-     * Build rotate image
-     * 
-     * @param int $size
-     * @return bool
-     */
-    public function build(int $size = 350): bool
-    {
-        /*
-        if(!$this->info || is_null($this->front)) {
-            return false;
-        }*/
+	/**
+	 * Get image info
+	 *
+	 * @param string $filePath
+	 * @return array
+	 */
+	public function getInfo(string $filePath = null): array
+	{
+		if(is_null($filePath)) {
+			$info = getimagesize($this->image);
+		} else {
+			// Only take image information
+			if (!is_file($filePath)) {
+				throw new CaptchaException($this->captcha->lang()->get('Image does not exist.'));
+			}
 
-        if(($sizes = $this->calcSize($size)) && $sizes === false) {
-            return false;
-        }
+			$info = getimagesize($filePath);
 
-        [$src_w, $src_h, $dst_w, $dst_h, $dst_scale, $src_scale, $w, $h, $x, $y] = $sizes;
+			return $this->info = $this->formatImageInfo($info);
+		}
 
-        $cropped = imagecreatetruecolor($w, $h);
+		return $this->info = $this->formatImageInfo($info);
+	}
 
-        $bg = imagecolorallocatealpha($cropped, 255, 255, 255, 127);
-        imagefill($cropped, 0, 0, $bg);
-        // Keep transparent
-        imagesavealpha($cropped, true);
-        // imagealphablending($cropped, false);
+	/**
+	 * Save image
+	 *
+	 * @param int $size
+	 * @return bool
+	 */
+	public function save(int $size = 350): bool
+	{
+		if (!$this->build($size) || !$this->back) {
+			return false;
+		}
 
-        // Cut image
-        imagecopy($cropped, $this->front, 0, 0, $x, $y, $src_w, $src_h);
+		$mime = $this->info['mime'];
 
-        $r = $w / 2;
-        $w = imagesx($cropped);
-        $h = imagesy($cropped);
+		if($this->outputMime != $mime) {
+			$mime = $this->outputMime;
+		}
 
-        $img = imagecreatetruecolor($w, $h);
+		switch($mime) {
+			case 'image/jpg':
+			case 'image/jpeg':
+				imagejpeg($this->back, $this->cacheFilePath, $this->config['quality'] ?: 80);
+				break;
+			case 'image/webp':
+				imagepalettetotruecolor($this->back);
+				imagewebp($this->back, $this->cacheFilePath, $this->config['quality'] ?: 80);
+				break;
+			case 'image/png':
+				imagepng($this->back, $this->cacheFilePath);
+				break;
+			default:
+				return false;
+		}
 
-        $transparent = imagecolorallocatealpha($img, 255, 255, 255, 127);
-        imagefill($img, 0, 0, $transparent);
-        // Keep transparent
-        imagesavealpha($img, true);
-        // imagealphablending($img, false);
+		imagedestroy($this->back);
+		imagedestroy($this->front);
+		
+		return true;
+	}
 
-        for ($x = 0; $x < $w; $x++) {
-            for ($y = 0; $y < $h; $y++) {
-                $rgbColor = @imagecolorat($cropped, $x, $y);
-                if (((($x - $r) * ($x - $r) + ($y - $r) * ($y - $r)) < ($r * $r))) {
-                    imagesetpixel($img, $x, $y, $rgbColor);
-                }
-            }
-        }
+	/**
+	 * Build rotate image
+	 * 
+	 * @param int $size
+	 * @return bool
+	 */
+	public function build(int $size = 350): bool
+	{
+		/*
+		if(!$this->info || is_null($this->front)) {
+			return false;
+		}*/
 
-        // Rotate the image
-        $circled = imagerotate($img, $this->degrees, imagecolorallocatealpha($img, 255, 255, 255, 127));
+		if(($sizes = $this->calcSize($size)) && $sizes === false) {
+			return false;
+		}
 
-        $w1 = imagesx($circled);
-        $h1 = imagesy($circled);
+		[$src_w, $src_h, $dst_w, $dst_h, $dst_scale, $src_scale, $w, $h, $x, $y] = $sizes;
 
-        $x = intval(($w1 - $w) / 2);
-        $y = intval(($h1 - $h) / 2);
+		$cropped = imagecreatetruecolor($w, $h);
 
-        imagecopy($img, $circled, 0, 0, $x, $y, $w1, $h1);
+		$bg = imagecolorallocatealpha($cropped, 255, 255, 255, 127);
+		imagefill($cropped, 0, 0, $bg);
+		// Keep transparent
+		imagesavealpha($cropped, true);
+		// imagealphablending($cropped, false);
 
-        // Zoom
-        $scale = $dst_w / $w;
-        $target = imagecreatetruecolor($dst_w, $dst_h);
+		// Cut image
+		imagecopy($cropped, $this->front, 0, 0, $x, $y, $src_w, $src_h);
 
-        if(!empty($this->config['bgcolor'])) {
-            if($this->config['bgcolor'] == '#fff' || $this->config['bgcolor'] == 'white') {
-                $this->config['bgcolor'] == '#ffffff';
-            }
-            // Set background color
-            $_color = $this->hex2rgb($this->config['bgcolor'], false);
-            if(!$_color || !is_array($_color)) {
-                $_color = [255, 255, 255];
-            }
-            $bgColor = imagecolorallocate($target, ...$_color);
-            imagefill($target, 0, 0, $bgColor);
-        } else {
-            $bgColor = imagecolorallocatealpha($target, 255, 255, 255, 127);
-            imagefill($target, 0, 0, $bgColor);
-            // Keep transparent
-            imagesavealpha($target, true);
-            // imagealphablending($target, false);
-        }
+		$r = $w / 2;
+		$w = imagesx($cropped);
+		$h = imagesy($cropped);
 
-        $final_w = intval($w * $scale);
-        $final_h = intval($h * $scale);
-        imagecopyresampled($target, $img, 0, 0, 0, 0, $final_w, $final_h, $w, $h);
+		$img = imagecreatetruecolor($w, $h);
 
-        // Destroy image
-        imagedestroy($img);
-        imagedestroy($cropped);
-        imagedestroy($circled);
-        imagedestroy($this->front);
+		$transparent = imagecolorallocatealpha($img, 255, 255, 255, 127);
+		imagefill($img, 0, 0, $transparent);
+		// Keep transparent
+		imagesavealpha($img, true);
+		// imagealphablending($img, false);
 
-        $this->back = $target;
+		for ($x = 0; $x < $w; $x++) {
+			for ($y = 0; $y < $h; $y++) {
+				$rgbColor = @imagecolorat($cropped, $x, $y);
+				if (((($x - $r) * ($x - $r) + ($y - $r) * ($y - $r)) < ($r * $r))) {
+					imagesetpixel($img, $x, $y, $rgbColor);
+				}
+			}
+		}
 
-        return true;
-    }
+		// Rotate the image
+		$circled = imagerotate($img, $this->degrees, imagecolorallocatealpha($img, 255, 255, 255, 127));
 
-    /**
-     * Create image
-     *
-     * @return bool
-     */
-    public function createFront(): bool
-    {
-        switch ($this->info['mime']) {
-            case 'image/jpeg':
-                $this->front = imagecreatefromjpeg($this->image);
-                break;
-            case 'image/png':
-                $this->front = imagecreatefrompng($this->image);
-                break;
-            case 'image/webp':
-                $this->front = imagecreatefromwebp($this->image);
-                break;
-            default:
-                return false;
-        }
+		$w1 = imagesx($circled);
+		$h1 = imagesy($circled);
 
-        return true;
-    }
+		$x = intval(($w1 - $w) / 2);
+		$y = intval(($h1 - $h) / 2);
 
-    /**
-     * Format the obtained image information
-     * 
-     * @param array $info
-     * @return array
-     */
-    private function formatImageInfo(array $info = [])
-    {
-        if (!in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'])) {
-            throw new CaptchaException($this->captcha->lang()->get('Please use jpeg and png or webp images.'));
-        }
+		imagecopy($img, $circled, 0, 0, $x, $y, $w1, $h1);
 
-        return [
-            'width'  => $info[0],
-            'height' => $info[1],
-            'mime'   => $info['mime'],
-            'type'   => image_type_to_extension($info[2], false),
-        ];
-    }
+		// Zoom
+		$scale = $dst_w / $w;
+		$target = imagecreatetruecolor($dst_w, $dst_h);
+
+		if(!empty($this->config['bgcolor'])) {
+			if($this->config['bgcolor'] == '#fff' || $this->config['bgcolor'] == 'white') {
+				$this->config['bgcolor'] == '#ffffff';
+			}
+			// Set background color
+			$_color = $this->hex2rgb($this->config['bgcolor'], false);
+			if(!$_color || !is_array($_color)) {
+				$_color = [255, 255, 255];
+			}
+			$bgColor = imagecolorallocate($target, ...$_color);
+			imagefill($target, 0, 0, $bgColor);
+		} else {
+			$bgColor = imagecolorallocatealpha($target, 255, 255, 255, 127);
+			imagefill($target, 0, 0, $bgColor);
+			// Keep transparent
+			imagesavealpha($target, true);
+			// imagealphablending($target, false);
+		}
+
+		$final_w = intval($w * $scale);
+		$final_h = intval($h * $scale);
+		imagecopyresampled($target, $img, 0, 0, 0, 0, $final_w, $final_h, $w, $h);
+
+		// Destroy image
+		imagedestroy($img);
+		imagedestroy($cropped);
+		imagedestroy($circled);
+		imagedestroy($this->front);
+
+		$this->back = $target;
+
+		return true;
+	}
+
+	/**
+	 * Create image
+	 *
+	 * @return bool
+	 */
+	public function createFront(): bool
+	{
+		switch ($this->info['mime']) {
+			case 'image/jpeg':
+				$this->front = imagecreatefromjpeg($this->image);
+				break;
+			case 'image/png':
+				$this->front = imagecreatefrompng($this->image);
+				break;
+			case 'image/webp':
+				$this->front = imagecreatefromwebp($this->image);
+				break;
+			default:
+				return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Format the obtained image information
+	 * 
+	 * @param array $info
+	 * @return array
+	 */
+	private function formatImageInfo(array $info = [])
+	{
+		if (!in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'])) {
+			throw new CaptchaException($this->captcha->lang()->get('Please use jpeg and png or webp images.'));
+		}
+
+		return [
+			'width'  => $info[0],
+			'height' => $info[1],
+			'mime'   => $info['mime'],
+			'type'   => image_type_to_extension($info[2], false),
+		];
+	}
 }
