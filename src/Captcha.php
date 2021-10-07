@@ -111,16 +111,16 @@ class Captcha
 			throw new CaptchaException($this->lang()->get('Please pass in the material image.'));
 		}
 
+		if (!is_file($image)) {
+			throw new CaptchaException($this->lang()->get('Material image does not exist.'));
+		}
+
 		if(is_null($uploadPath)) {
 			throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
 		}
 
 		$this->image = $image;
-		$this->uploadPath = $uploadPath;
-
-		if (!is_file($this->image)) {
-			throw new CaptchaException($this->lang()->get('Material image does not exist.'));
-		}
+		$this->uploadPath = $this->formatPath($uploadPath);
 
 		// Create image handle class
 		$this->handle();
@@ -261,6 +261,8 @@ class Captcha
 			throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
 		}
 
+		$uploadPath = $this->formatPath($uploadPath);
+
 		$filepath = $uploadPath . $str;
 
 		if(!is_file($filepath)) {
@@ -271,7 +273,7 @@ class Captcha
 
 		ob_start();
 		@readfile($filepath);
-		$image  = ob_get_clean();
+		$image = ob_get_clean();
 
 		// When not storing the image file, Delete image
 		if(!$this->config('storeImage')) {
@@ -292,11 +294,12 @@ class Captcha
 	{
 		return [
 			'token' => $this->info['token'],
-			// 'path' => $this->info['path'],
 			'str' => $this->encrypter()->encrypt($this->info['path']),
 			// 'angle' => $this->info['angle'], // Please do not display it
-			'type' => $this->info['type'],
-			'size' => $this->size,
+			// 'type' => $this->info['type'],
+			// 'path' => $this->info['path'],
+			// 'cache' => $this->info['cache'],
+			// 'size' => $this->size,
 		];
 	}
 
@@ -317,10 +320,7 @@ class Captcha
 			throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
 		}
 
-		// Build angle dir
-		$angleDir = $this->buildAngleDir($this->degrees);
-
-		$this->cachePath = $angleDir . md5(md5((string) $this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
+		$this->cachePath = $this->getFileAndPath();
 		$this->cacheFilePath = $this->uploadPath . $this->cachePath;
 
 		$this->handle->setCachePathAndDegrees($this->cacheFilePath, $this->degrees);
@@ -482,32 +482,51 @@ class Captcha
 	}
 
 	/**
-	 * Build angle dir
+	 * Get file path and filename
 	 * 
-	 * @param int|float|string $angle
 	 * @return string
 	 */
-	private function buildAngleDir(?int $angle): string
+	private function getFileAndPath(): string
 	{
+		if (!is_file($this->image)) {
+			throw new CaptchaException($this->lang()->get('Material image does not exist.'));
+		}
+
+		if (empty($this->degrees) || $this->degrees < 30) {
+			throw new CaptchaException($this->lang()->get('The degrees of rotation cannot be less than 30.'));
+		}
+
+		$angle = sprintf("%03d", $this->degrees);
 		$depth = (int) $this->config('storeImage') ?? 0;
+		$filename = md5(md5((string) $angle) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
 
 		if(!$depth) {
-			return '/';
+			return $filename;
 		}
-
-		$angle = sprintf("%03d", $angle);
 
 		if($depth == 1) {
-			return $angle . '/';
+			return $angle . DIRECTORY_SEPARATOR . $filename;
 		}
 
-		$path = substr($angle, 0, 1) . '/' . substr($angle, 1, 1) . '/';
+		$path = substr($angle, 0, 1) . DIRECTORY_SEPARATOR . substr($angle, 1, 1) . DIRECTORY_SEPARATOR;
 
 		if($depth > 2) {
-			$path .= substr($angle, 2, 3) . '/';
+			$path .= substr($angle, 2, 3) . DIRECTORY_SEPARATOR;
 		}
 
-		return $path;
+
+		return $path . $filename;
+	}
+
+	/**
+	 * Format path
+	 * 
+	 * @param string $path
+	 * @return string
+	 */
+	public function formatPath(string $path = ''): string
+	{
+		return rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 	}
 
 	/**
@@ -554,9 +573,6 @@ class Captcha
 
 		ob_start();
 		@readfile($this->info['cache']);
-		$content  = ob_get_contents();
-		ob_end_clean();
-
-		return $content;
+		return ob_get_clean();
 	}
 }
