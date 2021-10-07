@@ -320,7 +320,7 @@ class Captcha
 			throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
 		}
 
-		$this->cachePath = $this->getFileAndPath();
+		$this->cachePath = $this->getStoreFilePath();
 		$this->cacheFilePath = $this->uploadPath . $this->cachePath;
 
 		$this->handle->setCachePathAndDegrees($this->cacheFilePath, $this->degrees);
@@ -482,11 +482,11 @@ class Captcha
 	}
 
 	/**
-	 * Get file path and filename
+	 * Get the storage path of the cached image
 	 * 
 	 * @return string
 	 */
-	private function getFileAndPath(): string
+	private function getStoreFilePath(): string
 	{
 		if (!is_file($this->image)) {
 			throw new CaptchaException($this->lang()->get('Material image does not exist.'));
@@ -513,7 +513,6 @@ class Captcha
 		if($depth > 2) {
 			$path .= substr($angle, 2, 3) . DIRECTORY_SEPARATOR;
 		}
-
 
 		return $path . $filename;
 	}
