@@ -22,8 +22,8 @@ class ImagickHandle extends Handle
 		$this->captcha = $captcha;
 		$this->image = $image;
 		$this->config = $config;
-        $this->outputMime = $this->captcha->getMime();
-        $this->outputType = $this->getExt();
+		$this->outputMime = $this->captcha->getMime();
+		$this->outputType = $this->getExt();
 
 		return $this;
 	}
