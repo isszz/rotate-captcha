@@ -89,43 +89,7 @@
             _this.runtime.loaded = !1;
             _this.$captchaImgWrap.classList.add('captcha-loading');
 
-            /*let xhr, formData;
-            xhr = new XMLHttpRequest();
-            xhr.withCredentials = false;
-            xhr.open('GET', _this.options.url.create, false);
-            xhr.onload = function() {
-                let res;
-                if (xhr.status != 200) {
-                    return;
-                }
-                res = JSON.parse(xhr.responseText);
-                if (!res || typeof res.code !== 0) {
-                    return;
-                }
-                
-                let token = xhr.getResponseHeader('CaptchaToken');
-
-                _this.token = res.data.token; 
-                _this.$captchaImg = _this.$captchaImgWrap.querySelectorAll('img')[0];
-                _this.$captchaImg.setAttribute('src', _this.options.url.img + '?id=' + res.data.str);
-                _this.$captchaImg.style.cssText = 'transform: rotate(0deg);';
-
-                _this.$captchaImg.onload = function () {
-                    _this.runtime.loaded = !0;
-                    _this.$captchaImgWrap.classList.remove('captcha-loading');
-                };
-
-                if(typeof callback == 'function') {
-                    callback();
-                }
-            };
-
-            // formData = new FormData();
-            // formData.append();
-            xhr.send(null);*/
-
             _this.getJSON(_this.options.url.create, null, function(res, xhr) {
-            // $.getJSON(_this.options.url.create).done(function(res) {
                 if(res.code === 0) {
                     let token = xhr.getResponseHeader('X-CaptchaToken');
                     _this.token = token || res.data.token | ''; 
@@ -280,7 +244,6 @@
             const _this = this;
 
             _this.getJSON(_this.options.url.check, {angle: _this.runtime.deg}, function(res) {
-            // $.getJSON(_this.options.url.check, {token: _this.token, angle: _this.runtime.deg}).done(function(res) {
                 if(res.code === 0) {
                     _this.runtime.state = !0;
                     _this.$coordinate.style.display = 'none';

@@ -13,6 +13,7 @@ abstract class Handle implements HandleInterface
 	public $size = 350;
 	public $back = null;
 	public $front = null;
+	public $degrees = 0;
 
 	public function calcSize($size = 350)
 	{
@@ -117,15 +118,15 @@ abstract class Handle implements HandleInterface
 	 */
 	public function getExt()
 	{
-        switch ($this->outputMime) {
-            case 'image/png':
-                return 'png';
-            case 'image/webp':
-                return 'webp';
-            case 'image/jpg':
+		switch ($this->outputMime) {
+			case 'image/png':
+				return 'png';
+			case 'image/webp':
+				return 'webp';
+			case 'image/jpg':
 			case 'image/jpeg':
-                return 'jpg';
-        }
+				return 'jpg';
+		}
 		return 'webp';
 	}
 

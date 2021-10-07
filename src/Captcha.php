@@ -232,6 +232,7 @@ class Captcha
 			return true;
 		}
 
+		// dd($token, $angle, $payload);
 		throw new CaptchaException($this->lang()->get('Invalid verification.'));
 
 		return false;
@@ -270,8 +271,14 @@ class Captcha
 
 		ob_start();
 		@readfile($filepath);
-		$image  = ob_get_contents();
-		ob_end_clean();
+		$image  = ob_get_clean();
+
+		// When not storing the image file, Delete image
+		if(!$this->config('storeImage')) {
+			// @unlink($filepath);
+			// Remove all files in the directory
+			\isszz\captcha\rotate\support\File::make($uploadPath)->remove();
+		}
 
 		return [$mime, $image];
 	}
@@ -287,12 +294,9 @@ class Captcha
 			'token' => $this->info['token'],
 			// 'path' => $this->info['path'],
 			'str' => $this->encrypter()->encrypt($this->info['path']),
-			'angle' => $this->info['angle'], // Please do not display it
-			// 'cache' => $this->info['cache'],
+			// 'angle' => $this->info['angle'], // Please do not display it
 			'type' => $this->info['type'],
 			'size' => $this->size,
-			// 'width'  => $this->info['width'],
-			// 'height' => $this->info['height'],
 		];
 	}
 
@@ -303,20 +307,44 @@ class Captcha
 	{
 		// Get random angle, generate angle hash
 		$this->degrees = rand(30, 270);
-		// $this->degrees = 70;
 
 		// Set token
 		$this->token = $this->store()->put($this->degrees);
+
+		$this->store()->put($this->degrees);
 
 		if(is_null($this->uploadPath)) {
 			throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
 		}
 
-		$this->cachePath = date('ym', time()) . '/' . md5(md5((string) $this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
+		// Build angle dir
+		$angleDir = $this->buildAngleDir($this->degrees);
 
+		$this->cachePath = $angleDir . md5(md5((string) $this->degrees) . md5($this->image . 'cfyun') . 'cfyun.cc') . $this->handle->getFileExt($this->image, false);
 		$this->cacheFilePath = $this->uploadPath . $this->cachePath;
 
 		$this->handle->setCachePathAndDegrees($this->cacheFilePath, $this->degrees);
+	}
+
+	/**
+	 * Get output mime
+	 *
+	 * @return string
+	 */
+	public function getMime(): string
+	{
+		$outputType = $this->config('outputType');
+
+		switch ($outputType) {
+			case self::OUTPUT_PNG:
+				return 'image/png';
+			case self::OUTPUT_WEBP:
+				return 'image/webp';
+			case self::OUTPUT_JPEG:
+				return 'image/jpeg';
+			default:
+				throw new CaptchaException($this->lang()->get('Unsupported type: :outputType', ['outputType' => $outputType]));
+		}
 	}
 
 	/**
@@ -327,7 +355,6 @@ class Captcha
 	 */
 	public function configDrive(string $config): self
 	{
-		// dd($config, !is_string($config), !class_exists($config), !is_subclass_of($config, Config::class));
 		if (!is_string($config) || !class_exists($config) || !is_subclass_of($config, Config::class)) {
 			throw new CaptchaException($this->lang()->get('Config driver :driver does not exist.', ['driver' => $config]));
 		}
@@ -455,24 +482,32 @@ class Captcha
 	}
 
 	/**
-	 * Get output mime
-	 *
+	 * Build angle dir
+	 * 
+	 * @param int|float|string $angle
 	 * @return string
 	 */
-	public function getMime(): string
+	private function buildAngleDir(?int $angle): string
 	{
-		$outputType = $this->config('outputType');
+		$depth = (int) $this->config('storeImage') ?? 0;
 
-		switch ($outputType) {
-			case self::OUTPUT_PNG:
-				return 'image/png';
-			case self::OUTPUT_WEBP:
-				return 'image/webp';
-			case self::OUTPUT_JPEG:
-				return 'image/jpeg';
-			default:
-				throw new CaptchaException($this->lang()->get('Unsupported type: :outputType', ['outputType' => $outputType]));
+		if(!$depth) {
+			return '/';
 		}
+
+		$angle = sprintf("%03d", $angle);
+
+		if($depth == 1) {
+			return $angle . '/';
+		}
+
+		$path = substr($angle, 0, 1) . '/' . substr($angle, 1, 1) . '/';
+
+		if($depth > 2) {
+			$path .= substr($angle, 2, 3) . '/';
+		}
+
+		return $path;
 	}
 
 	/**

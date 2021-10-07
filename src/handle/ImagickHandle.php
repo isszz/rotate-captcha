@@ -92,7 +92,6 @@ class ImagickHandle extends Handle
 		$this->front->clear();
 		$this->front->destroy();
 
-
 		return true;
 	}
 
@@ -128,11 +127,13 @@ class ImagickHandle extends Handle
 		$shape->roundRectangle(0, 0, $w, $h, $w, $w);
 		// Draw the rectangle
 		$mask->drawImage($shape);
+		
 		// Apply mask
 		$this->front->setImageMatte(true);
 		$this->front->compositeImage($mask, Imagick::COMPOSITE_DSTIN, 0, 0);
+
 		// Rotate image
-		$this->front->rotateImage(new ImagickPixel('none'), $this->degrees);
+		$this->front->rotateImage(new ImagickPixel('none'), -$this->degrees);
 
 		// Cut image
 		$info = $this->front->getImageGeometry();
@@ -174,7 +175,6 @@ class ImagickHandle extends Handle
 
 		if($this->outputMime == 'image/webp' || $this->outputMime == 'image/jpeg') {
 			$this->back->setImageCompression(Imagick::COMPRESSION_JPEG);
-			// $this->back->setImageCompression(Imagick::COMPRESSION_WEBP);
 			$this->back->setImageCompressionQuality($this->config['quality'] ?: 80);
 		} else {
 			// PNG can be compressed by more than 2 times, with an average of about 90kb, the disadvantage is that it loses too many pixels
