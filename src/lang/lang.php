@@ -2,6 +2,7 @@
 
 return [
     'zh-cn' => [
+        // base
         'Need to support GD or Imagick extension.' => '需要支持GD或Imagick扩展。',
         'Please pass in the material image.' => '请传入素材图片。',
         'Please set uploadPath parameter.' => '请设置uploadPath参数。',
@@ -32,5 +33,9 @@ return [
         'The degrees of rotation cannot be less than 30.' => '旋转度数不能小于 30。',
         // Drive
         'Captcha storage drive class: :class invalid.' => '验证码存储驱动器类：:class 无效。',
+        // verify
+        'Invalid verification.' => '验证无效。',
+        'Verification timed out.' => '验证超时。',
+        'Validation error.' => '验证错误。',
     ],
 ];

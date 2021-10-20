@@ -5,6 +5,7 @@
 use isszz\captcha\rotate\store\SessionStore;
 
 return [
+	'lang' => 'zh-cn',
 	'size' => 350, // 生成图片尺寸
 	'expire' => 300, // 生成验证有效期
 	'salt' => '%%*$*$#$~#$^isszz@cfyun.cc^&*$#$~',

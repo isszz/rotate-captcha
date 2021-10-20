@@ -59,6 +59,7 @@ Imagick方式只做了基本的测试
 <?php
 
 return [
+	'lang' => 'zh-cn', // 默认语言
 	'size' => 350, // 生成图片尺寸
 	'expire' => 300, // 生成验证有效期
 	'salt' => '%%*$*$#$~#$^isszz@cfyun.cc^&*$#$~',
@@ -160,7 +161,9 @@ class Captcha
 
 		// 生成验证码需要的图片
 		// setLang设置语言
-		$data = RotateCaptcha::setLang('zh-cn')->create(
+		// $rotateCaptcha = RotateCaptcha::setLang('zh-cn');
+		// $rotateCaptcha->create(...);
+		$data = RotateCaptcha::create(
 			$image,
 			upload_path('captcha') // 用于存储生成图片的目录
 		)->get(260); // 260为最终生成的图片尺寸
@@ -188,7 +191,7 @@ class Captcha
 		}
 
 		try {
-			if(RotateCaptcha::setLang('zh-cn')->check($token, $angle) === true) {
+			if(RotateCaptcha::check($token, $angle) === true) {
 				$this->result(0, 'success');
 			}
 		} catch(CaptchaException $e) {
@@ -296,7 +299,7 @@ $image = path('upload') . 'captcha_mtl' . DIRECTORY_SEPARATOR . $image;
 // 新增: 从指定目录随机读取文件，这个方法不知道效率如何，基于FilesystemIterator类实现
 $image = File::make(path('upload') . 'captcha_mtl' . DIRECTORY_SEPARATOR)->rand();
 
-$data = Captcha::configDrive(\CaptchaConfig::class)->setLang('zh-cn')->create($image, path('upload') . 'captcha' . DIRECTORY_SEPARATOR)->get(260);
+$data = Captcha::configDrive(\CaptchaConfig::class)->create($image, path('upload') . 'captcha' . DIRECTORY_SEPARATOR)->get(260);
 
 header('Content-Type:application/json; charset=utf-8');
 

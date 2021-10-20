@@ -416,7 +416,7 @@ class Captcha
 	 * @param string|null $file
 	 * @return object
 	 */
-	public function lang(string $language = 'en', ?string $file = null): object
+	public function lang(string $language = null, ?string $file = null): object
 	{
 		if(!is_null($this->lang)) {
 			return $this->lang;
@@ -424,6 +424,10 @@ class Captcha
 
 		if(empty($file)) {
 		   $file = __DIR__ . DIRECTORY_SEPARATOR .'lang'. DIRECTORY_SEPARATOR .'lang.php';
+		}
+
+		if(is_null($language)) {
+			$language = $this->config('lang') ?? 'en';
 		}
 
 		return $this->lang = Lang::line($file, $language);
