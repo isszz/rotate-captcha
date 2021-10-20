@@ -1,7 +1,7 @@
 # Rotate captcha
 旋转图片角度验证码, 包含php生成验证图片(gd 或者 imagick)
 
-<p align="center">
+<p>
     <a href="https://packagist.org/packages/isszz/rotate-captcha"><img src="https://poser.pugx.org/isszz/rotate-captcha/v/stable" alt="Stable Version"></a>
     <a href="https://packagist.org/packages/isszz/rotate-captcha"><img src="https://poser.pugx.org/isszz/rotate-captcha/downloads" alt="Total Downloads"></a>
     <a href="https://packagist.org/packages/isszz/rotate-captcha"><img src="https://poser.pugx.org/isszz/rotate-captcha/license" alt="License"></a>
