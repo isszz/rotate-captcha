@@ -277,9 +277,12 @@ class Captcha
 
 		// When not storing the image file, Delete image
 		if(!$this->config('storeImage')) {
-			// @unlink($filepath);
+			@unlink($filepath);
+			// 未设置存储生成验证码图片时:
+			// 删除整个目录文件, 可能造成其他用户的验证码图片也被删除, 所以还是访问后删除
+			// 下面这个方法, 可以在你的项目中来处理, 比如在深夜进行删除
 			// Remove all files in the directory
-			\isszz\captcha\rotate\support\File::make($uploadPath)->remove();
+			// \isszz\captcha\rotate\support\File::make($uploadPath)->remove();
 		}
 
 		return [$mime, $image];
