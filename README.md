@@ -1,7 +1,7 @@
 # Rotate captcha
 旋转图片角度验证码, 使用 PHP 生成验证图片(gd 或者 imagick) 用于旋转验证，可用于各种框架</br>
 
-前端部分已经支持原生`JS`，`jquery`，`vue2`，`uniapp`版本, 持续更新, 可放心使用</br>
+前端已经支持原生`JS`，`jquery`，`vue2`，`uniapp`版本, 持续更新, 可放心使用</br>
 
 暂未实现`react`版，有能力的朋友参考现有版自行实现下哦</br>
 已知uniapp打包微信小程序（IOS有卡顿bug希望有能力的可以修复下，我没有设备无法复现问题）</br>
