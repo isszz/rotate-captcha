@@ -1,6 +1,12 @@
 # Rotate captcha
-旋转图片角度验证码, 包含php生成验证图片(gd 或者 imagick)
+旋转图片角度验证码, 使用 PHP 生成验证图片(gd 或者 imagick) 用于旋转验证，可用于各种框架</br>
 
+前端部分已经支持原生`JS`，`jquery`，`vue2`，`uniapp`版本, 持续更新, 可放心使用</br>
+
+暂未实现`react`版，有能力的朋友参考现有版自行实现下哦</br>
+已知uniapp打包微信小程序（IOS有卡顿bug希望有能力的可以修复下，我没有设备无法复现问题）</br>
+
+若发现`bug`, 或更好的建议, 还请`issue`反馈
 <p>
     <a href="https://packagist.org/packages/isszz/rotate-captcha"><img src="https://poser.pugx.org/isszz/rotate-captcha/v/stable" alt="Stable Version"></a>
     <a href="https://packagist.org/packages/isszz/rotate-captcha"><img src="https://poser.pugx.org/isszz/rotate-captcha/downloads" alt="Total Downloads"></a>
@@ -50,17 +56,6 @@ composer require isszz/rotate-captcha -vvv
 
 ## Ctrl+鼠标左键, 查看演示视频
 <a target="_blank" href="https://www.bilibili.com/blackboard/html5mobileplayer.html?aid=250374453&bvid=BV1wv411w7u1&cid=404070048&page=2"><img src="https://raw.githubusercontent.com/isszz/rotate-captcha/main/demo/video-cover.png" alt="点击查看视频演示" /></a>
-
-## PHP部分说明
-GD方式在本地开发环境PHP8X做了测试可以正常使用
-Imagick方式只做了基本的测试
-
-**如有BUG请issue, 谢谢**
-
-## JS部分说明
-
-已实现`jquery`版，原生`js`版，`vue`版，`uniapp`版（IOS有bug希望有能力的可以修复下，我没有设备无法复现问题）
-未实现`react`版，有能力的朋友参考现有版自行实现下哦
 
 ## 配置说明
 ```php
