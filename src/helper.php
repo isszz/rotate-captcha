@@ -1,16 +1,17 @@
 <?php
 
-use isszz\captcha\rotate\facade\Captcha;
+// use isszz\captcha\rotate\facade\Captcha;
 
 if (!function_exists('rotate_captcha')) {
     /**
      * @param string $image
      * @param string $uploadPath
      * @param int $size
+     * @return array
      */
     function rotate_captcha(string $image = '', string $uploadPath = null, int $size = 350): array
     {
-        return Captcha::create($image, $uploadPath)->get($size);
+        return \isszz\captcha\rotate\facade\Captcha::create($image, $uploadPath)->get($size);
     }
 }
 
@@ -22,19 +23,19 @@ if (!function_exists('rotate_captcha_check')) {
      */
     function rotate_captcha_check(string $token, string $value): bool
     {
-        return Captcha::check($token, $value);
+        return \isszz\captcha\rotate\facade\Captcha::check($token, $value);
     }
 }
 
-if (!function_exists('rotate_captcha_img')) {
+if (!function_exists('rotate_captcha_output')) {
     /**
      * @param string $value
      * @param string $uploadPath
-     * @return string
+     * @return array
      */
-    function rotate_captcha_img(string $value, string $uploadPath = null): array
+    function rotate_captcha_output(string $value, string $uploadPath = null): array
     {
-        return Captcha::img($value, $uploadPath);
+        return \isszz\captcha\rotate\facade\Captcha::output($value, $uploadPath);
     }
 }
 

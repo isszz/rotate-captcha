@@ -45,6 +45,9 @@
   - 未启用存储生成图片时，~~每次图片访问后会清理存储图片的目录内所有文件~~，删除当前访问生成验证码图片
 - **2021-10-20 更新**
   - 将语言改到为配置项
+- **2022-01-05 更新**
+  - 增加facade注释
+  - 移除助手类的rotate_captcha_img方法使用rotate_captcha_output代替，用法和\isszz\captcha\rotate\facade\Captcha::output方法相同，返回数组[$mime, $image]，生成图片的mime类型和图片内容
 
 ## 安装
 ```
@@ -335,7 +338,7 @@ if(empty($id)) {
 	exit('');
 }
 
-[$mime, $image] = Captcha::img($id, upload_path('captcha'));
+[$mime, $image] = Captcha::output($id, upload_path('captcha'));
 
 if(empty($image)) {
 	exit('');

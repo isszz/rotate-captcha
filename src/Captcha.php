@@ -184,7 +184,7 @@ class Captcha
 	 * Check if it is rotated to the correct angle
 	 *
 	 * @param int|float|string $angle
-	 * @return array
+	 * @return bool
 	 */
 	public function check(string $token, int|float|string $angle = null): bool
 	{
@@ -530,7 +530,7 @@ class Captcha
 	 * @param string $path
 	 * @return string
 	 */
-	public function formatPath(string $path = ''): string
+	private function formatPath(string $path = ''): string
 	{
 		return rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 	}
