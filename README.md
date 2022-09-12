@@ -179,8 +179,8 @@ class Captcha
 		}
 		// $data['str']是图片的path加密, 用于前端交换验证码图片
 		// 这里前端不涉及拿到角度, 都是去后端验证
-		// 可以使用header传递token为X-CaptchaToken
-		$this->result(0, 'success', ['str' => $data['str']], ['X-CaptchaToken' => $data['token']]);
+		// 可以使用header传递token为X-Captchatoken
+		$this->result(0, 'success', ['str' => $data['str']], ['X-Captchatoken' => $data['token']]);
 	}
 	
 	/**
@@ -190,7 +190,7 @@ class Captcha
 	{
 		$angle = $request->get('angle');
 		// 优先从header获取token
-		$token = $request->header('X-CaptchaToken') ?: $request->get('token');
+		$token = $request->header('X-Captchatoken') ?: $request->get('token');
 
 		if(empty($token) || empty($angle)) {
 			$this->result(1, 'error');
@@ -324,6 +324,54 @@ echo json_encode([
 	'msg' => 'error',
 	'data' => null,
 ]);
+
+```
+
+### 非thinkphp6框架，验证
+```
+<?php
+
+use isszz\captcha\rotate\support\request\Request;
+use isszz\captcha\rotate\CaptchaException;
+use isszz\captcha\rotate\facade\Captcha;
+
+// 下面Config配置类自行实现
+class CaptchaConfig extends \isszz\captcha\rotate\Config
+{
+	public function get(string $name, string $defaultValue = null): mixed
+	{
+		return \Config::get($name, $defaultValue);
+	}
+
+	public function put(string $name, array|string $data): bool
+	{
+		return \Config::put($name, $data);
+	}
+
+	public function forget(string $name): bool
+	{
+		return \Config::forget($name);
+	}
+}
+
+$angle = $_GET['angle'] ?? '';
+
+// 优先从header获取token
+$token = Request::header('X-Captchatoken') ?: $_GET['token'] ?? '';
+
+if(empty($token) || empty($angle)) {
+	exit(json_encode(['code' => 1, 'msg' => 'error']));
+}
+
+try {
+	if(Captcha::configDrive(\CaptchaConfig::class)->setLang('zh-cn')->check($token, $angle) === true) {
+		exit(json_encode(['code' => 0, 'msg' => 'success']));
+	}
+} catch(CaptchaException $e) {
+	exit(json_encode(['code' => 1, 'msg' => $e->getMessage()]));
+}
+
+exit(json_encode(['code' => 1, 'msg' => 'error']));
 
 ```
 ### 非thinkphp6框架，输出图片
