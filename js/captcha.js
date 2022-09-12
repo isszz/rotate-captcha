@@ -75,7 +75,7 @@
             _this.$control = _this.$elem.querySelectorAll('.captcha-control')[0];
             _this.$controlWrap = _this.$elem.querySelectorAll('.captcha-control-wrap')[0];
             _this.$controlButton = _this.$elem.querySelectorAll('.captcha-control-button')[0];
-            
+
             _this.loadImg(function() {
                 _this.events();
             });
@@ -85,14 +85,14 @@
             const _this = this;
 
             callback = callback || function() {};
-            
+
             _this.runtime.loaded = !1;
             _this.$captchaImgWrap.classList.add('captcha-loading');
 
             _this.getJSON(_this.options.url.create, null, function(res, xhr) {
                 if(res.code === 0) {
                     let token = xhr.getResponseHeader('X-CaptchaToken');
-                    _this.token = token || res.data.token | ''; 
+                    _this.token = token || res.data.token | '';
                     _this.$captchaImg = _this.$captchaImgWrap.querySelectorAll('img')[0];
                     _this.$captchaImg.setAttribute('src', _this.options.url.img + '?id=' + res.data.str);
                     _this.$captchaImg.style.cssText = 'transform: rotate(0deg);';
@@ -108,7 +108,7 @@
                 }
             });
         }
-        
+
         events(elem) {
             const _this = this;
             if(isTouch) {
@@ -126,13 +126,14 @@
             } else {
                 _this.$coordinate.style.display = 'none';
             }
-            
+
             _this.$captchaImg.style.cssText = 'transform: rotate('+ this.runtime.deg +'deg)';
         }
 
         initMouse() {
 			const _this = this;
 			let ifThisMousedown = !1;
+
 			_this.$controlButton.on('mousedown', function (e) {
                 if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$controlButton.hasAttribute('animated')) {
 					return !1;
@@ -142,7 +143,7 @@
 				let disPageX = e.pageX;
 				_this.$controlButton.classList.add('captcha-button-active');
 
-				$(document).on('mousemove', function (e) {
+				document.querySelector('body').on('mousemove', function (e) {
 
 					if (!ifThisMousedown) {
 						return !1;
@@ -150,13 +151,13 @@
 
 					let x = e.pageX - disPageX;
 
-                    
+
                     _this.move(x);
 					e.preventDefault();
 				});
 			});
 
-			$(document).on('mouseup', function () {
+			document.querySelector('body').on('mouseup', function () {
 				if (!ifThisMousedown) {
 					return !1;
 				}
@@ -167,7 +168,7 @@
 					return !1;
 				}
 
-				$(document).off('mousemove');
+				document.querySelector('body').off('mousemove');
 				_this.$controlButton.classList.remove('captcha-button-active');
 
                 if(!_this.runtime.deg || _this.runtime.left < 5) {
@@ -193,7 +194,7 @@
                 if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$controlButton.hasAttribute('animated')) {
                     return !1;
                 }
-                
+
                 ifThisTouchStart = !0;
                 disPageX = e.targetTouches[0].pageX;
 
@@ -265,7 +266,7 @@
                 _this.dragTimerState = !0;
                 _this.$main.classList.add('captcha-fail');
                 _this.$control.classList.add('captcha-control-horizontal');
-                
+
                 _this.$control.once('webkitAnimationEnd', function() { // animationend
                     _this.$control.classList.remove('captcha-control-horizontal');
                 });
@@ -306,7 +307,7 @@
                 if (xhr.status != 200) {
                     return;
                 }
-                
+
                 try {
                     let res = JSON.parse(xhr.responseText) || null;
                     if (!res) {
@@ -354,7 +355,7 @@
                     _this.$controlButton.classList.remove('captcha-button-active');
                 }
             }
-            
+
             _this.runtime.left = x;
             _this.spinImg();
         }
@@ -384,7 +385,7 @@
             }
 
             timerProgressBar.style.display = 'flex';
-            
+
             setTimeout(() => {
                 timerProgressBar.style.transition = `width ${timer / 1000}s linear`;
                 timerProgressBar.style.width = '0%';
@@ -420,7 +421,7 @@
         close() {
             this.destroy();
         }
-        
+
         insertCss() {
 
             let style = document.getElementById('J_captcha_css');
@@ -515,7 +516,7 @@
                 width: var(--size-width);
                 padding: 20px 15px 25px;
                 text-align: center;
-                background: #fff; 
+                background: #fff;
             }
             .captcha .captcha-title h2 {
                 font-size: 14px;
@@ -592,7 +593,7 @@
                 position: relative;
                 width: var(--size-control);
                 height: 50px;
-                margin: 0 auto;    
+                margin: 0 auto;
             }
             .captcha-control-wrap,
             .captcha-control-button {
@@ -633,7 +634,7 @@
                 margin-left: -14px;
                 margin-top: -14px;
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 1024 1024" version="1.1"><path fill="%23444444" d="M384 896a32 32 0 0 1-32-32V160a32 32 0 0 1 64 0v704a32 32 0 0 1-32 32z m257.056 0.128a32 32 0 0 1-32-32v-704a32 32 0 1 1 64 0v704a32 32 0 0 1-32 32zM864 736a32 32 0 0 1-32-32V320a32 32 0 1 1 64 0v384a32 32 0 0 1-32 32zM160 736a32 32 0 0 1-32-32V320a32 32 0 0 1 64 0v384a32 32 0 0 1-32 32z"></path></svg>');
-            
+
                 -webkit-background-size: 100% 100%;
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
@@ -700,17 +701,17 @@
                     -ms-transform: translate(0px,0);
                     transform: translate(0px,0)
                 }
-            
+
                 10%,30%,50%,70%,90% {
                     -webkit-transform: translate(-1px,0);
                     transform: translate(-1px,0)
                 }
-            
+
                 20%,40%,60%,80% {
                     -webkit-transform: translate(1px,0);
                     transform: translate(1px,0)
                 }
-            
+
                 100% {
                     -webkit-transform: translate(0px,0);
                     transform: translate(0px,0)
@@ -721,17 +722,17 @@
                     -webkit-transform: translate(0px,0);
                     transform: translate(0px,0)
                 }
-            
+
                 10%,30%,50%,70%,90% {
                     -webkit-transform: translate(-1px,0);
                     transform: translate(-1px,0)
                 }
-            
+
                 20%,40%,60%,80% {
                     -webkit-transform: translate(1px,0);
                     transform: translate(1px,0)
                 }
-            
+
                 100% {
                     -webkit-transform: translate(0px,0);
                     transform: translate(0px,0)
@@ -758,7 +759,7 @@
                 height: 4px;
                 background-color: var(--progress-bar-color);
             }
-            
+
             @media only screen and (max-width:400px) {
             }`;
         }
@@ -774,12 +775,12 @@
         return this;
     }
 
-    Element.prototype.once = function(type, callback) {  
-        var handle = function() {  
+    Element.prototype.once = function(type, callback) {
+        var handle = function() {
             callback = callback.call(this)
             this.removeEventListener(type, handle)
-        }  
-        this.addEventListener(type, handle)  
+        }
+        this.addEventListener(type, handle)
     }
 
     Element.prototype.captcha = function(options) {
