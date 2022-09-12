@@ -49,6 +49,11 @@
   - 增加facade注释
   - 移除助手类的rotate_captcha_img方法使用rotate_captcha_output代替，用法和\isszz\captcha\rotate\facade\Captcha::output方法相同，返回数组[$mime, $image]，生成图片的mime类型和图片内容
 
+- **2022-09-12 更新**
+  - 增加非TP6验证说明
+  - 修复原生JS事件处理问题（感谢 笨笨天才 的issue）
+  - 修改说明中X-CaptchaToken大写linux拿不到的问题, 应该拿的时候用X-Captchatoken（感谢 笨笨天才 的issue）
+
 ## 安装
 ```
 composer require isszz/rotate-captcha -vvv
