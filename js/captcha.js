@@ -301,7 +301,7 @@
             xhr.open('GET', url);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             if(_this.token) {
-                xhr.setRequestHeader('X-CaptchaToken', _this.token);
+                xhr.setRequestHeader('X-Captchatoken', _this.token);
             }
             xhr.onload = function() {
                 if (xhr.status != 200) {
