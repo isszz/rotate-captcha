@@ -206,7 +206,7 @@ export default {
 						return false
 					}
 					if(res.data.code == 0 || res.data.errno == 0) {
-						_this.runtime.token = res.header['x-captchatoken'] || res.header['X-CaptchaToken']
+						_this.runtime.token = res.header['x-captchatoken'] || res.header['X-Captchatoken']
 						
 						/*uni.getImageInfo({
 							src: _this.options.url.img + '?id=' + res.data.data.str,
