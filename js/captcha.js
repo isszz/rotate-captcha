@@ -30,7 +30,7 @@
         close: function (state) {}, // 关闭验证码窗口
     };
 
-	class Captcha {
+    class Captcha {
         constructor(element, options) {
             const _this = this;
             _this.runtime = {
@@ -91,8 +91,9 @@
 
             _this.getJSON(_this.options.url.create, null, function(res, xhr) {
                 if(res.code === 0) {
-                    let token = xhr.getResponseHeader('X-CaptchaToken');
+                    let token = xhr.getResponseHeader('X-Captchatoken');
                     _this.token = token || res.data.token | '';
+
                     _this.$captchaImg = _this.$captchaImgWrap.querySelectorAll('img')[0];
                     _this.$captchaImg.setAttribute('src', _this.options.url.img + '?id=' + res.data.str);
                     _this.$captchaImg.style.cssText = 'transform: rotate(0deg);';
@@ -119,7 +120,7 @@
         }
 
         spinImg() {
-			const _this = this;
+            const _this = this;
 
             if(this.runtime.deg) {
                 _this.$coordinate.style.display = 'block';
@@ -131,62 +132,62 @@
         }
 
         initMouse() {
-			const _this = this;
-			let ifThisMousedown = !1;
+            const _this = this;
+            let ifThisMousedown = !1;
 
-			_this.$controlButton.on('mousedown', function (e) {
+            _this.$controlButton.on('mousedown', function (e) {
                 if (!_this.runtime.loaded || _this.runtime.state || _this.dragTimerState || _this.$controlButton.hasAttribute('animated')) {
-					return !1;
+                    return !1;
                 }
 
-				ifThisMousedown = !0;
-				let disPageX = e.pageX;
-				_this.$controlButton.classList.add('captcha-button-active');
+                ifThisMousedown = !0;
+                let disPageX = e.pageX;
+                _this.$controlButton.classList.add('captcha-button-active');
 
-				document.querySelector('body').on('mousemove', function (e) {
+                document.querySelector('body').on('mousemove', function (e) {
 
-					if (!ifThisMousedown) {
-						return !1;
-					}
+                    if (!ifThisMousedown) {
+                        return !1;
+                    }
 
-					let x = e.pageX - disPageX;
+                    let x = e.pageX - disPageX;
 
 
                     _this.move(x);
-					e.preventDefault();
-				});
-			});
+                    e.preventDefault();
+                });
+            });
 
-			document.querySelector('body').on('mouseup', function () {
-				if (!ifThisMousedown) {
-					return !1;
-				}
+            document.querySelector('body').on('mouseup', function () {
+                if (!ifThisMousedown) {
+                    return !1;
+                }
 
-				ifThisMousedown = !1;
+                ifThisMousedown = !1;
 
-				if (_this.runtime.state) {
-					return !1;
-				}
+                if (_this.runtime.state) {
+                    return !1;
+                }
 
-				document.querySelector('body').off('mousemove');
-				_this.$controlButton.classList.remove('captcha-button-active');
+                document.querySelector('body').off('mousemove');
+                _this.$controlButton.classList.remove('captcha-button-active');
 
                 if(!_this.runtime.deg || _this.runtime.left < 5) {
                     _this.$coordinate.style.display = 'none';
                     _this.$captchaImg.style.cssText = 'transform: rotate(0deg)';
                     _this.$controlButton.style.cssText = 'transform: translateX';
-					return !1;
+                    return !1;
                 }
 
                 // 验证
                 _this.check();
-			});
+            });
         }
 
         initTouch() {
-			const _this = this;
+            const _this = this;
 
-			let ifThisTouchStart = !1;
+            let ifThisTouchStart = !1;
 
             let disPageX = 0;
 
@@ -361,7 +362,7 @@
         }
 
         timerProgressBar (timer) {
-			const _this = this;
+            const _this = this;
 
             if(!timer) {
                 return !1;
@@ -406,7 +407,7 @@
             this.$coordinate.style.display = 'none';
             // this.$coordinate.hide();
             this.loadImg(this.$elem);
-		}
+        }
 
         destroy() {
             this.options.close(this.runtime.state);
@@ -834,8 +835,7 @@
     window.Captcha = Captcha;
 })();
 
-if (typeof(module) !== 'undefined')
-{
+if (typeof(module) !== 'undefined') {
     module.exports = window.Captcha;
 } else if (typeof define === 'function' && define.amd) {
     define([], function () {
