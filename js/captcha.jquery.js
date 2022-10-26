@@ -1,5 +1,16 @@
 /*! Rotate captcha - v0.0.1 | https://github.com/isszz/rotate-captcha | https://cfyun.cc | Copyright (c) 2021 CFYun | MIT license */
-define(function (require, exports, module) {
+(function (factory) {
+    if ( typeof define === 'function' && define.amd ) {
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else if (typeof exports === 'object') {
+        // Node/CommonJS style for Browserify
+        module.exports = factory;
+    } else {
+        // Browser globals
+        factory(jQuery);
+    }
+}(function ($) {
     const css = `/*! Rotate captcha CSS - v0.0.1 | https://github.com/isszz/rotate-captcha | https://cfyun.cc | Copyright (c) 2021 CFYun | MIT license */
     .captcha {
         position: relative;
@@ -712,4 +723,4 @@ define(function (require, exports, module) {
             }
         });
     };
-});
+}));
