@@ -301,6 +301,7 @@ define(function (require, exports, module) {
             _this.options.size.imgMargin = parseInt(_this.options.width / 10);
 
             _this.element = element;
+            _this.token = '';
 
             // insert css
             _this.insertCss(css);
@@ -339,8 +340,10 @@ define(function (require, exports, module) {
             _this.runtime.loaded = !1;
             _this.$captchaImgWrap.addClass('captcha-loading');
             
-            $.getJSON(_this.options.url.create).done(function(res) {
+            $.getJSON(_this.options.url.create).done(function(res, textStatus, jqXHR) {
                 if(res.code === 0) {
+                    // 使用JQ版本请后端务必传递token参数给前端用于验证
+                    _this.token = res.data.token || '';
                     _this.$captchaImg = _this.$captchaImgWrap.find('img').attr('src', _this.options.url.img + '?id=' + res.data).css({transform: 'rotate(0deg)'});
 
                     _this.$captchaImg.onload = function () {
@@ -492,8 +495,12 @@ define(function (require, exports, module) {
         // 验证
         check() {
             const _this = this;
-
-            $.getJSON(_this.options.url.check, {angle: _this.runtime.deg}).done(function(res) {
+            $.ajaxSetup({
+                headers : {
+                    'X-Captchatoken' : this.token,
+                }
+            });
+            $.getJSON(_this.options.url.check, {angle: _this.runtime.deg}).done(function(res) { // , token: this.token
                 if(res.code === 0) {
                     _this.runtime.state = !0;
                     _this.$coordinate.hide();
