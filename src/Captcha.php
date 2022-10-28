@@ -317,8 +317,6 @@ class Captcha
 		// Set token
 		$this->token = $this->store()->put($this->degrees);
 
-		$this->store()->put($this->degrees);
-
 		if(is_null($this->uploadPath)) {
 			throw new CaptchaException($this->lang()->get('Please set uploadPath parameter.'));
 		}
