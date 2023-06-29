@@ -374,20 +374,22 @@ class Captcha
 	 */
 	public function config(string|null $name = null, string|null $defaultValue = null): mixed
 	{
-		if (!is_object($this->configDrive) && !is_subclass_of($this->configDrive, Config::class)) {
-
-			if(!class_exists(\think\App::class) || strpos(\think\App::VERSION, '6.0') === false) {
-				throw new CaptchaException($this->lang()->get('Config driver :driver does not exist.', [
-					'driver' => is_object($this->configDrive) ? get_class($this->configDrive) : $this->configDrive
-				]));
+		// Setting the default drive
+		if (!is_object($this->configDrive)) {
+			if(class_exists(\think\App::class) && version_compare(\think\App::VERSION, '6.0', '>=')) {
+				// Default config drive is thinkphp6.x
+				$this->configDrive = new \isszz\captcha\rotate\config\Think();
+			} else {
+				throw new CaptchaException($this->lang()->get('Please set config Drive first.'));
 			}
-
-			// Default config drive is thinkphp6.0.x
-			$this->configDrive = new \isszz\captcha\rotate\config\Think();
 		}
 
-		$config = array_merge($this->config, $this->configDrive->get('rotateCaptcha'));
+		if(is_object($this->configDrive) && !is_subclass_of($this->configDrive, Config::class)) {
+			throw new CaptchaException($this->lang()->get('Config driver must inherit from isszz\captcha\rotate\Config'));	
+		}
 
+		// Merge configuration content
+		$config = array_merge($this->config, $this->configDrive->get('rotateCaptcha'));
 
 		if(is_null($name)) {
 			return $config;
