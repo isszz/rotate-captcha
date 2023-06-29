@@ -260,23 +260,25 @@ use isszz\captcha\rotate\support\File;
 use isszz\captcha\rotate\facade\Captcha;
 use isszz\captcha\rotate\CaptchaException;
 
+use think\facade\Config;
+
 // 这里用到的Config用自己框架的配置类
 class CaptchaConfig extends \isszz\captcha\rotate\Config
 {
-	public function get(string $name, string $defaultValue = null): mixed
-	{
-		return \Config::get($name, $defaultValue);
-	}
+    public function get(string $name, string $defaultValue = null): mixed
+    {
+        return Config::get($name, $defaultValue);
+    }
 
-	public function put(string $name, array|string $data): bool
-	{
-		return \Config::put($name, $data);
-	}
+    public function put(string $name, array|string $data): bool
+    {
+        return Config::set($name, $data);
+    }
 
-	public function forget(string $name): bool
-	{
-		return \Config::forget($name);
-	}
+    public function forget(string $name): bool
+    {
+        return Config::delete($name);
+    }
 }
 
 /*
